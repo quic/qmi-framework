@@ -1,0 +1,38 @@
+# Ignore the install directory
+/install/
+
+# Ignore generated files
+*.la
+*.o
+*.lo
+*.libs
+*.deps
+Makefile
+Makefile.in
+aclocal.m4
+configure
+ar-lib
+config.h
+config.h.in
+config.log
+config.status
+libtool
+compile
+config.guess
+install-sh
+missing
+mkinstalldirs
+depcomp
+ltmain.sh
+stamp-h1
+config.sub
+*subs.sh
+
+# Ignore specific binaries
+tests/qcci_test
+tests/qcsi_test
+
+# Ignore directories
+autom4te.cache/
+m4/
+
