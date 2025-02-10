@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
@@ -16,32 +18,29 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-
 echo "Cleaning up previous build.."
 make clean
 rm -rf install
-
 
 echo "Running autoreconf.."
 autoreconf --install || { echo "Autoreconf failed"; exit 1; }
 
 echo "Running configure.."
-./configure --host=$HOST_ARCH  --prefix=$(pwd)/install || { echo "configure failed"; exit 1; }
+./configure --host=$HOST_ARCH --prefix=$(pwd)/install || { echo "configure failed"; exit 1; }
 
 echo "Running make.."
 make || { echo "make failed"; exit 1; }
 
 make install || { echo "make install failed"; exit 1; }
 
-
 FILES_TO_CLEAN=(
     aclocal.m4 configure ar-lib config.h config.h.in config.log config.status libtool
     Makefile Makefile.in compile config.guess install-sh missing mkinstalldirs depcomp
-	ltmain.sh stamp-h1 config.sub *subs.sh
+    ltmain.sh stamp-h1 config.sub *subs.sh
 )
 DIRECTORIES_TO_CLEAN=(
     autom4te.cache
-	m4
+    m4
 )
 
 for file in "${FILES_TO_CLEAN[@]}"; do

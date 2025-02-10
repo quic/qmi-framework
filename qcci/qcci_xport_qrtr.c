@@ -15,7 +15,6 @@
 #include <errno.h>
 #include <poll.h>
 #include <fcntl.h>
-#include <endian.h>
 #include <linux/qrtr.h>
 #include "qmi_client.h"
 #include "qcci_os.h"

@@ -12,7 +12,11 @@ AM_CFLAGS = -Wundef \
 
 AM_CPPFLAGS = -I../include -I../qcsi -I../common
 
-requiredlibs = -lpthread ../qencdec/libqencdec.la ../common/libqmi_common.la ../qcci/libqcci.la ../qcsi/libqcsi.la
+requiredlibs = ../qencdec/libqencdec.la ../common/libqmi_common.la ../qcci/libqcci.la ../qcsi/libqcsi.la
+
+if GNU_CC
+requiredlibs += -lpthread
+endif
 
 bin_PROGRAMS = qcci_test
 qcci_test_SOURCES = qcci_test.c test_service_v01.c

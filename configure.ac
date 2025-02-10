@@ -19,6 +19,17 @@ AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
 AM_PROG_AR
 
+AS_CASE([$host],
+  [*-linux-gnu], [
+  compile_for_gnu=yes
+  ], [
+  compile_for_gnu=no
+  ]
+)
+
+AM_CONDITIONAL([GNU_CC],
+[test "$compile_for_gnu" = yes])
+
 #Enable QMI FW logging
 AM_CONDITIONAL(ENABLE_QMI_LOG, test "x${with_qmilog}" = "xyes")
 

@@ -1,0 +1,74 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-22.04
+
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: c-cpp
+          build-mode: manual
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies and kernel headers
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          automake autoconf libtool \
+          gcc-aarch64-linux-gnu \
+          libncurses-dev flex bison \
+          wget xz-utils build-essential bc
+
+    - name: Download and extract Linux kernel source
+      run: |
+        wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.10.198.tar.xz
+        tar -xf linux-5.10.198.tar.xz
+        cd linux-5.10.198
+        make mrproper
+        make ARCH=arm64 defconfig
+        make headers_install INSTALL_HDR_PATH=$GITHUB_WORKSPACE/linux-headers
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    - if: ${{ matrix.build-mode == 'manual' }}
+      shell: bash
+      name: Set Up Build Environment and Compile
+      run: |
+        export PATH="$PWD/gcc-linaro-7.5.0-2019.12-i686_aarch64-linux-gnu/bin/:$PATH"
+        export CC=aarch64-linux-gnu-gcc
+        export CXX=aarch64-linux-gnu-g++
+        export C_INCLUDE_PATH="$GITHUB_WORKSPACE/linux-headers/include"
+        autoreconf --install || { echo "Autoreconf failed"; exit 1; }
+        ./configure --host=aarch64-linux-gnu --prefix=$(pwd)/install || { echo "Configure failed"; exit 1; }
+        if [ -f Makefile ]; then
+          make clean
+        fi
+        make || { echo "Make failed"; exit 1; }
+        make install || { echo "Make install failed"; exit 1; }
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"

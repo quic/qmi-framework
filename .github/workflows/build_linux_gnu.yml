@@ -1,0 +1,87 @@
+name: CI - Linux GNU Compilation
+
+on:
+  push:
+    branches:
+      - "main"
+      - "development"
+  pull_request:
+    branches:
+      - "main"
+      - "development"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Install Autotools
+        run: sudo apt-get install -y automake autoconf libtool
+
+      - name: Download Linaro Toolchain
+        run: |
+          wget -c https://releases.linaro.org/components/toolchain/binaries/latest-7/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-i686_aarch64-linux-gnu.tar.xz
+          tar xf gcc-linaro-7.5.0-2019.12-i686_aarch64-linux-gnu.tar.xz
+
+      - name: Install dependencies and kernel headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            automake autoconf libtool \
+            gcc-aarch64-linux-gnu \
+            libncurses-dev flex bison \
+            wget xz-utils build-essential bc
+
+      - name: Download and extract Linux kernel source
+        run: |
+          wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.10.198.tar.xz
+          tar -xf linux-5.10.198.tar.xz
+          cd linux-5.10.198
+          make mrproper
+          make ARCH=arm64 defconfig
+          make headers_install INSTALL_HDR_PATH=$GITHUB_WORKSPACE/linux-headers
+
+      - name: Set Build Environment
+        run: |
+          export PATH="$PWD/gcc-linaro-7.5.0-2019.12-i686_aarch64-linux-gnu/bin/:$PATH"
+          export CC=aarch64-linux-gnu-gcc
+          export CXX=aarch64-linux-gnu-g++
+          export C_INCLUDE_PATH="$GITHUB_WORKSPACE/linux-headers/include"
+          autoreconf --install
+          ./configure --host=aarch64-linux-gnu --prefix=$(pwd)/install
+          if [ -f Makefile ]; then
+            make clean
+          fi
+          make || { echo "Make failed"; exit 1; }
+          make install || { echo "Make install failed"; exit 1; }
+
+      - name: Verify the compiled binaries
+        run: |
+          echo "Verifying compiled binaries..."
+          Files=(
+            "install/lib/libqcci.so"
+            "install/lib/libqcsi.so"
+            "install/lib/libqencdec.so"
+            "install/lib/libqmi_common.so"
+            "install/lib/libqcci.so.1"
+            "install/lib/libqcsi.so.1"
+            "install/lib/libqencdec.so.1"
+            "install/lib/libqmi_common.so.1"
+            "install/lib/libqcci.so.1.0.0"
+            "install/lib/libqcsi.so.1.0.0"
+            "install/lib/libqencdec.so.1.0.0"
+            "install/lib/libqmi_common.so.1.0.0"
+            "install/bin/qcci_test"
+            "install/bin/qcsi_test"
+          )
+          for File in "${Files[@]}"; do
+            if [ -f "$File" ]; then
+              echo "$File exists."
+            else
+              echo "$File not found!" && exit 1
+            fi
+          done
