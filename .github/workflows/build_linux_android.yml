@@ -1,0 +1,70 @@
+name: CI - Android Cross Compilation
+
+on:
+  push:
+    branches:
+      - "main"
+      - "development"
+  pull_request:
+    branches:
+      - "main"
+      - "development"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y automake libtool
+
+      - name: Download Android NDK and unzip
+        run: |
+          wget -q https://dl.google.com/android/repository/android-ndk-r27-linux.zip
+          unzip -q android-ndk-r27-linux.zip
+
+      - name: Set Up Build Environment
+        run: |
+          echo "Setting up Android NDK build environment"
+          export ANDROID_NDK_HOME="$PWD/android-ndk-r27"
+          export PATH="$PATH:$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+
+          # Set Android ARM Compiler Variables
+          export CC=aarch64-linux-android34-clang
+          export CXX=aarch64-linux-android34-clang++
+          export AS=llvm-as
+          export LD=ld
+          export RANLIB=llvm-ranlib
+          export STRIP=llvm-strip
+          autoreconf --install
+          ./configure --host=aarch64-linux-android --prefix=$(pwd)/install
+          if [ -f Makefile ]; then
+            make clean
+          fi
+          make || { echo "Make failed"; exit 1; }
+          make install || { echo "Make install failed"; exit 1; }
+
+      - name: Verify the compiled binaries
+        run: |
+          echo "Verifying compiled binaries..."
+          Files=(
+            "install/lib/libqcci.so"
+            "install/lib/libqcsi.so"
+            "install/lib/libqencdec.so"
+            "install/lib/libqmi_common.so"
+            "install/bin/qcci_test"
+            "install/bin/qcsi_test"
+          )
+          for File in "${Files[@]}"; do
+            if [ -f "$File" ]; then
+              echo "$File exists."
+            else
+              echo "$File not found!" && exit 1
+            fi
+          done
