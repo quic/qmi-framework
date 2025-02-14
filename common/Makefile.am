@@ -14,7 +14,9 @@ AM_CPPFLAGS = \
 
 h_sources = qmi_common.h
 
+if GNU_CC
 requiredlibs = -lpthread
+endif
 library_includedir = $(pkgincludedir)
 library_include_HEADERS = $(h_sources)
 

@@ -16,6 +16,12 @@
 #include <sys/select.h>
 #include "qmi_idl_lib_internal.h"
 
+#if defined(__GLIBC__)
+#include <endian.h>
+#elif defined(__ANDROID__)
+#include <sys/endian.h>
+#endif
+
 /** QMI CSI lock type */
 typedef pthread_mutex_t qcsi_lock_type;
 

@@ -16,6 +16,12 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#if defined(__GLIBC__)
+#include <endian.h>
+#elif defined(__ANDROID__)
+#include <sys/endian.h>
+#endif
+
 /** QMI CCI lock type */
 typedef pthread_mutex_t qcci_os_lock_type;
 

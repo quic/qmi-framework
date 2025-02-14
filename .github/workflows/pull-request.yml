@@ -1,0 +1,23 @@
+name: Prevent Pull Requests to Main
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+jobs:
+  check-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Pull Request Branches
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$GITHUB_BASE_REF" == "main" ]; then
+            echo "Pull requests to the main branch are restricted. Use development branch instead."
+            exit 1
+          fi
