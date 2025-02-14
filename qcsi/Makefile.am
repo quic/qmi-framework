@@ -25,11 +25,14 @@ endif
 h_sources = \
         qcsi_os.h
 
-requiredlibs = -lpthread \
-        ../qencdec/libqencdec.la
+requiredlibs = ../qencdec/libqencdec.la
 
 if ENABLE_QMI_LOG
 requiredlibs += -llog
+endif
+
+if GNU_CC
+requiredlibs += -lpthread
 endif
 
 library_includedir = $(pkgincludedir)
