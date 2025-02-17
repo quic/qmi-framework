@@ -1,5 +1,4 @@
-name: Prevent Pull Requests to Main
-
+name: Prevent pull request to main
 on:
   pull_request_target:
     types:
@@ -12,12 +11,13 @@ jobs:
   check-branches:
     runs-on: ubuntu-latest
     steps:
-      - name: Validate Pull Request Branches
+      - name: Check branches
         env:
           GITHUB_HEAD_REF: ${{ github.head_ref }}
           GITHUB_BASE_REF: ${{ github.base_ref }}
         run: |
-          if [ "$GITHUB_BASE_REF" == "main" ]; then
-            echo "Pull requests to the main branch are restricted. Use development branch instead."
+          if [ "$GITHUB_HEAD_REF" != "development" ] && [ "$GITHUB_BASE_REF" == "main" ]; then
+            echo "Create a pull request to quic/qmi-framework:development branch"
+            echo "Pull requests to quic/qmi-framework:main branch are only allowed from quic/qmi-framework:development branch."
             exit 1
           fi
