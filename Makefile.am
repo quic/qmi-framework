@@ -3,5 +3,5 @@
 
 # Makefile.am - Automake script for QMI Framework
 ACLOCAL_AMFLAGS = -I m4
-pkginclude_HEADERS = include/*.h
+
 SUBDIRS = common qencdec qcci qcsi tests
