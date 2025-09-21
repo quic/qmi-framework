@@ -10,7 +10,7 @@ AM_CFLAGS = -Wundef \
         -fpic
 
 AM_CPPFLAGS = \
-        -I$(top_srcdir)/include
+        -I../include
 
 h_sources = qmi_common.h
 
@@ -18,7 +18,7 @@ if GNU_CC
 requiredlibs = -lpthread
 endif
 library_includedir = $(pkgincludedir)
-noinst_HEADERS = $(h_sources)
+library_include_HEADERS = $(h_sources)
 
 c_sources = common_v01.c
 

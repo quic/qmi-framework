@@ -10,7 +10,7 @@ AM_CFLAGS = -Wundef \
         -fpic
 
 AM_CPPFLAGS = \
-        -I$(top_srcdir)/include
+        -I../include
 
 h_sources = qmi_idl_lib_target.h
 

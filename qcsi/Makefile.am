@@ -12,8 +12,8 @@ AM_CFLAGS = -Wundef \
 	-DQMI_FW_SYSLOG
 
 AM_CPPFLAGS = \
-        -I$(top_srcdir)/include \
-        -I$(top_srcdir)/common/ \
+        -I../include \
+        -I../common/ \
         -I$(top_builddir) \
         $(QMI_CFLAGS) \
         $(QMIFV_CFLAGS)
@@ -36,7 +36,7 @@ requiredlibs += -lpthread
 endif
 
 library_includedir = $(pkgincludedir)
-noinst_HEADERS = $(h_sources)
+library_include_HEADERS = $(h_sources)
 
 c_sources = qcsi_common.c \
         qcsi_os.c \
