@@ -10,7 +10,7 @@ AM_CFLAGS = -Wundef \
         -fpic \
         $(QMI_CFLAGS)
 
-AM_CPPFLAGS = -I../include -I../qcsi -I../common
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/qcsi -I$(top_srcdir)/common
 
 requiredlibs = ../qencdec/libqencdec.la ../common/libqmi_common.la ../qcci/libqcci.la ../qcsi/libqcsi.la
 
