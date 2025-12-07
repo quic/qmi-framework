@@ -10,7 +10,7 @@
  */
 #include <string.h>
 #include "qmi_idl_lib.h"
-#include "qcsi.h"
+#include "qmi_csi.h"
 #include "qcsi_os.h"
 #include "qcsi_common.h"
 #include "common_v01.h"
@@ -419,7 +419,7 @@ static qcsi_client_type *create_client
  * @retval QCSI_ENCODE_ERR Encoding error.
  * @retval QCSI_TRANSPORT_ERR Transport error.
  */
-static qcsi_error internal_send
+static qmi_csi_error_type internal_send
 (
 	qcsi_service_type *svc,
 	qcsi_client_type *clnt,
@@ -433,7 +433,7 @@ static qcsi_error internal_send
 {
 	qcsi_xport_type *xport;
 	uint32_t max_msg_len = 0, out_len;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 	int32_t encdec_rc;
 	unsigned char *msg;
 	uint8_t cntl_flag;
@@ -558,7 +558,7 @@ static qcsi_error internal_send
  * @retval QCSI_NO_MEM No memory.
  * @retval QCSI_ENCODE_ERR Encoding error.
  */
-static qcsi_error encode_and_send_resp
+static qmi_csi_error_type encode_and_send_resp
 (
 	qcsi_xport_type *xport,
 	void *addr,
@@ -569,7 +569,7 @@ static qcsi_error encode_and_send_resp
 )
 {
 	uint32_t resp_msg_len;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 	unsigned char *msg;
 
 	resp_msg_len = qmi_idl_get_std_resp_tlv_len();
@@ -616,7 +616,7 @@ static qcsi_error encode_and_send_resp
  * @retval QCSI_CONN_REFUSED Connection refused.
  * @retval QCSI_INTERNAL_ERR Internal error.
  */
-qcsi_error qcsi_xport_connect
+qmi_csi_error_type qcsi_xport_connect
 (
 	qcsi_xport_type *xport,
 	void *addr
@@ -628,7 +628,7 @@ qcsi_error qcsi_xport_connect
 	uint32_t client_handle = 0xffffffff;
 	void *service_cookie = NULL;
 	void *connection_handle = NULL;
-	qcsi_error rc = QCSI_INTERNAL_ERR;
+	qmi_csi_error_type rc = QCSI_INTERNAL_ERR;
 	qcsi_cb_error cb_rc;
 
 	if(!xport || !xport->service || !addr)
@@ -703,7 +703,7 @@ qcsi_error qcsi_xport_connect
  * @retval QCSI_NO_ERR Success.
  * @retval QMI_ERR_INTERNAL_V01 Internal error.
  */
-qcsi_error qcsi_xport_recv
+qmi_csi_error_type qcsi_xport_recv
 (
 	qcsi_xport_type *xport,
 	void *addr,
@@ -942,7 +942,7 @@ void qcsi_xport_resume_client
  * @retval QCSI_NO_ERR Success.
  * @retval QCSI_INTERNAL_ERR Internal error.
  */
-qcsi_error qcsi_xport_disconnect
+qmi_csi_error_type qcsi_xport_disconnect
 (
 	qcsi_xport_type *xport,
 	void *addr
@@ -1037,8 +1037,8 @@ void qcsi_xport_closed
  * @retval QCSI_INTERNAL_ERR Internal error.
  * @retval QCSI_NO_MEM No memory.
  */
-qcsi_error
-qcsi_register_with_options
+qmi_csi_error_type
+qmi_csi_register_with_options
 (
 	qmi_idl_service_object_type               service_obj,
 	qcsi_connect                           service_connect,
@@ -1193,7 +1193,7 @@ qcsi_register_with_options
  * @retval QCSI_NO_ERR Success.
  * @retval QCSI_INTERNAL_ERR Internal error.
  */
-qcsi_error qcsi_register (
+qmi_csi_error_type qmi_csi_register (
 	qmi_idl_service_object_type               service_obj,
 	qcsi_connect                           service_connect,
 	qcsi_disconnect                        service_disconnect,
@@ -1202,7 +1202,7 @@ qcsi_error qcsi_register (
 	qcsi_os_params                         *os_params,
 	qcsi_service_handle                    *service_provider)
 {
-	return qcsi_register_with_options(
+	return qmi_csi_register_with_options(
 		       service_obj,
 		       service_connect,
 		       service_disconnect,
@@ -1224,7 +1224,7 @@ qcsi_error qcsi_register (
  * @retval QCSI_NO_ERR Success.
  * @retval QCSI_INVALID_HANDLE Invalid handle.
  */
-qcsi_error qcsi_handle_event(
+qmi_csi_error_type qmi_csi_handle_event(
     qcsi_service_handle service_provider,
     qcsi_os_params *os_params)
 {
@@ -1265,7 +1265,7 @@ qcsi_error qcsi_handle_event(
  * @retval QCSI_INVALID_ARGS Invalid arguments.
  * @retval QCSI_INVALID_HANDLE Invalid handle.
  */
-qcsi_error qcsi_send_resp_internal(
+qmi_csi_error_type qcsi_send_resp_internal(
     qmi_req_handle req_handle,
     unsigned int msg_id,
     void *c_struct,
@@ -1274,7 +1274,7 @@ qcsi_error qcsi_send_resp_internal(
 {
 	qcsi_txn_type *txn;
 	qcsi_client_type *clnt;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 
 	if(c_struct_len <= 0)
 		return QCSI_INVALID_ARGS;
@@ -1325,7 +1325,7 @@ send_resp_bail:
  * @retval QCSI_INVALID_ARGS Invalid arguments.
  * @retval QCSI_INVALID_HANDLE Invalid handle.
  */
-qcsi_error qcsi_send_resp(
+qmi_csi_error_type qmi_csi_send_resp(
     qmi_req_handle req_handle,
     unsigned int msg_id,
     void *c_struct,
@@ -1349,7 +1349,7 @@ qcsi_error qcsi_send_resp(
  * @retval QCSI_INVALID_ARGS Invalid arguments.
  * @retval QCSI_INVALID_HANDLE Invalid handle.
  */
-qcsi_error qcsi_send_resp_raw(
+qmi_csi_error_type qmi_csi_send_resp_raw(
     qmi_req_handle req_handle,
     unsigned int msg_id,
     void *c_struct,
@@ -1369,9 +1369,9 @@ qcsi_error qcsi_send_resp_raw(
  * @param c_struct_len Length of the structure.
  * @param encode Flag indicating whether to encode the message.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
+qmi_csi_error_type
 qcsi_send_ind_internal
 (
 	qmi_client_handle  client_handle,
@@ -1382,7 +1382,7 @@ qcsi_send_ind_internal
 )
 {
 	qcsi_client_type *clnt;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 
 	LOCK(&client_list_lock);
 	clnt = find_client((uint32_t)(uintptr_t)client_handle);
@@ -1419,10 +1419,10 @@ send_ind_bail:
  * @param c_struct Pointer to the structure containing the message data.
  * @param c_struct_len Length of the structure.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
-qcsi_send_ind
+qmi_csi_error_type
+qmi_csi_send_ind
 (
 	qmi_client_handle  client_handle,
 	unsigned int             msg_id,
@@ -1444,10 +1444,10 @@ qcsi_send_ind
  * @param buf Pointer to the buffer containing the message data.
  * @param buf_len Length of the buffer.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
-qcsi_send_ind_raw
+qmi_csi_error_type
+qmi_csi_send_ind_raw
 (
 	qmi_client_handle  client_handle,
 	unsigned int       msg_id,
@@ -1469,9 +1469,9 @@ qcsi_send_ind_raw
  * @param c_struct_len Length of the structure.
  * @param encode Flag indicating whether to encode the message.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
+qmi_csi_error_type
 qcsi_send_broadcast_ind_internal
 (
 	qcsi_service_handle   service_provider,
@@ -1482,7 +1482,7 @@ qcsi_send_broadcast_ind_internal
 )
 {
 	qcsi_service_type *svc;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 
 	/* lock client list first so if we find the service, the client list is
 	 * not going to be changed
@@ -1516,10 +1516,10 @@ broadcast_ind_bail:
  * @param c_struct Pointer to the structure containing the message data.
  * @param c_struct_len Length of the structure.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
-qcsi_send_broadcast_ind
+qmi_csi_error_type
+qmi_csi_send_broadcast_ind
 (
 	qcsi_service_handle   service_provider,
 	unsigned int             msg_id,
@@ -1541,10 +1541,10 @@ qcsi_send_broadcast_ind
  * @param buf Pointer to the buffer containing the message data.
  * @param buf_len Length of the buffer.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
-qcsi_send_broadcast_ind_raw
+qmi_csi_error_type
+qmi_csi_send_broadcast_ind_raw
 (
 	qcsi_service_handle   service_provider,
 	unsigned int             msg_id,
@@ -1564,10 +1564,10 @@ qcsi_send_broadcast_ind_raw
  *
  * @param service_provider Handle to the service provider.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
-qcsi_unregister
+qmi_csi_error_type
+qmi_csi_unregister
 (
 	qcsi_service_handle     service_provider
 )
@@ -1612,12 +1612,12 @@ qcsi_unregister
  * @note This function is NOT re-enterable or thread safe. The only safe place
  *       to call this is during initialization.
  */
-qcsi_error qcsi_init(
+qmi_csi_error_type qcsi_init(
 	qcsi_xport_ops_type	*xport_ops,
 	void			*xport_data)
 {
 	if (!xport_ops) {
-		return QCSI_INVALID_HANDLE;  //TODO: err code
+		return QCSI_INVALID_HANDLE;
 	}
 
 	if (qcsi_fw_inited == 0) {
@@ -1645,7 +1645,7 @@ qcsi_error qcsi_init(
  * @note This function is NOT re-enterable or thread safe. The only safe place
  *       to call this is during library de-initialization.
  */
-qcsi_error qcsi_deinit(void)
+qmi_csi_error_type qcsi_deinit(void)
 {
 	if (qcsi_fw_inited) {
 		qcsi_fw_inited = 0;
@@ -1664,9 +1664,9 @@ qcsi_error qcsi_deinit(void)
  * @param req_handle Handle to the request.
  * @param txn_id Pointer to store the transaction ID.
  *
- * @return qcsi_error Error code indicating the result of the operation.
+ * @return qmi_csi_error_type Error code indicating the result of the operation.
  */
-qcsi_error
+qmi_csi_error_type
 qcsi_get_txn_id
 (
 	qmi_req_handle     req_handle,

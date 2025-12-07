@@ -29,7 +29,7 @@ typedef enum {
 	QCSI_DECODE_ERR,
 	QCSI_NO_MEM,
 	QCSI_INTERNAL_ERR
-} qcsi_error;
+} qmi_csi_error_type;
 
 typedef enum {
 	QCSI_CB_NO_ERR = 0,
@@ -213,13 +213,13 @@ typedef struct qcsi_options_struct qcsi_options;
                                  identify different services.
 @param[in]   service_cookie      Service specific data. Service cookie is
                                  registered with the infrastructure during
-                                 service registration(qcsi_register).
+                                 service registration(qmi_csi_register).
 @param[out]  connection_handle   Services return this handle as a token to
                                  represent this client connection
                                  to the service.
 
 @retval    QCSI_CB_NO_ERR     Success
-@retval    QCSI_CB.....       Look into the enumeration qcsi_error for
+@retval    QCSI_CB.....       Look into the enumeration qmi_csi_error_type for
                                  the error values.
 */
 /*=========================================================================*/
@@ -243,9 +243,9 @@ typedef qcsi_cb_error (*qcsi_connect)
                                    disconnecting.
 @param[in]  service_cookie         Service specific data.Service cookie is
                                    registered with the infrastructure during
-                                   service registration(qcsi_register).
+                                   service registration(qmi_csi_register).
 @retval    QCSI_CB_NO_ERR       Success
-@retval    QCSI_CB.....         Look into the enumeration qcsi_error for
+@retval    QCSI_CB.....         Look into the enumeration qmi_csi_error_type for
                                    the error values.
 */
 /*=========================================================================*/
@@ -275,11 +275,11 @@ typedef void (*qcsi_disconnect)
 @param[in]  req_c_struct_len       Length of the c struct.
 @param[in]  service_cookie         Service specific data.Service cookie is
                                    registered with the infrastructure during
-                                   service registration(qcsi_register).
+                                   service registration(qmi_csi_register).
 
 
 @retval    QCSI_CB_NO_ERR       Success
-@retval    QCSI_CB.....         Look into the enumeration qcsi_error for
+@retval    QCSI_CB.....         Look into the enumeration qmi_csi_error_type for
                                    the error values.
 */
 /*=========================================================================*/
@@ -308,7 +308,7 @@ typedef qcsi_cb_error (*qcsi_process_req)
                                  qcsi_connect.
 @param[in]   service_cookie      Service specific data. Service cookie is
                                  registered with the infrastructure during
-                                 service registration(qcsi_register).
+                                 service registration(qmi_csi_register).
                                  represent this client connection
                                  to the service.
 
@@ -358,7 +358,7 @@ typedef void (*qcsi_log_msg)
 
 
 /*=============================================================================
-  FUNCTION  qcsi_register
+  FUNCTION  qmi_csi_register
 =============================================================================*/
 /*!
 @brief
@@ -375,13 +375,13 @@ typedef void (*qcsi_log_msg)
 @param[out] service_provider    Handle that infra provides to represent this
                                 service connection.
 @retval    QCSI_NO_ERR       Success
-@retval    qcsi_.....        Look into the enumeration qcsi_error for
+@retval    qcsi_.....        Look into the enumeration qmi_csi_error_type for
                                 the error values.
 */
 /*=========================================================================*/
 
-qcsi_error
-qcsi_register
+qmi_csi_error_type
+qmi_csi_register
 (
 	qmi_idl_service_object_type               service_obj,
 	qcsi_connect                           service_connect,
@@ -394,7 +394,7 @@ qcsi_register
 
 
 /*=============================================================================
-  FUNCTION  qcsi_register_with_options
+  FUNCTION  qmi_csi_register_with_options
 =============================================================================*/
 /*!
 @brief
@@ -412,13 +412,13 @@ qcsi_register
 @param[out] service_provider    Handle that infra provides to represent this
                                 service connection.
 @retval    QCSI_NO_ERR       Success
-@retval    QCSI_.....        Look into the enumeration qcsi_error for
+@retval    QCSI_.....        Look into the enumeration qmi_csi_error_type for
                                 the error values.
 */
 /*=========================================================================*/
 
-qcsi_error
-qcsi_register_with_options
+qmi_csi_error_type
+qmi_csi_register_with_options
 (
 	qmi_idl_service_object_type               service_obj,
 	qcsi_connect                           service_connect,
@@ -436,7 +436,7 @@ qcsi_register_with_options
 /*!
 @brief
   Handle event after the server thread receives an event notification.
-  Callbacks from qcsi_register may be invoked in the server's context.
+  Callbacks from qmi_csi_register may be invoked in the server's context.
 
 @param[in] service_provider    Opaque handle that defines the service.
 @param[in] os_params           OS-defined parameters such as file handle.
@@ -446,15 +446,15 @@ qcsi_register_with_options
 */
 /*=========================================================================*/
 
-qcsi_error
-qcsi_handle_event
+qmi_csi_error_type
+qmi_csi_handle_event
 (
 	qcsi_service_handle                    service_provider,
 	qcsi_os_params                         *os_params
 );
 
 /*=============================================================================
-  FUNCTION  qcsi_send_resp
+  FUNCTION  qmi_csi_send_resp
 =============================================================================*/
 /*!
 @brief
@@ -468,12 +468,12 @@ qcsi_handle_event
 @param[in]  resp_c_struct_len     Size of the response c struct.
 
 @retval  QCSI_NO_ERR           Success.
-@retval  qcsi_.....            Look into the enumeration qcsi_error for
+@retval  qcsi_.....            Look into the enumeration qmi_csi_error_type for
                                   the error values.
 */
 /*=========================================================================*/
-qcsi_error
-qcsi_send_resp
+qmi_csi_error_type
+qmi_csi_send_resp
 (
 	qmi_req_handle     req_handle,
 	unsigned int       msg_id,
@@ -482,7 +482,7 @@ qcsi_send_resp
 );
 
 /*=============================================================================
-  FUNCTION  qcsi_send_resp_raw
+  FUNCTION  qmi_csi_send_resp_raw
 =============================================================================*/
 /*!
 @brief
@@ -496,12 +496,12 @@ qcsi_send_resp
 @param[in]  resp_buf_len          Size of the response buffer
 
 @retval  QCSI_NO_ERR           Success.
-@retval  QCSI_.....            Look into the enumeration qcsi_error for
+@retval  QCSI_.....            Look into the enumeration qmi_csi_error_type for
                                   the error values.
 */
 /*=========================================================================*/
-qcsi_error
-qcsi_send_resp_raw
+qmi_csi_error_type
+qmi_csi_send_resp_raw
 (
 	qmi_req_handle     req_handle,
 	unsigned int       msg_id,
@@ -510,7 +510,7 @@ qcsi_send_resp_raw
 );
 
 /*=============================================================================
-  FUNCTION  qcsi_send_ind
+  FUNCTION  qmi_csi_send_ind
 =============================================================================*/
 /*!
 @brief
@@ -523,12 +523,12 @@ qcsi_send_resp_raw
 @param[in]  ind_c_struct_len         Size of the indication c struct
 
 @retval    QCSI_NO_ERR            Success.
-@retval    QCSI_.....             Look into the enumeration qcsi_error for
+@retval    QCSI_.....             Look into the enumeration qmi_csi_error_type for
                                      the error values.
 */
 /*=========================================================================*/
-qcsi_error
-qcsi_send_ind
+qmi_csi_error_type
+qmi_csi_send_ind
 (
 	qmi_client_handle  client_handle,
 	unsigned int       msg_id,
@@ -537,7 +537,7 @@ qcsi_send_ind
 );
 
 /*=============================================================================
-  FUNCTION  qcsi_send_ind_raw
+  FUNCTION  qmi_csi_send_ind_raw
 =============================================================================*/
 /*!
 @brief
@@ -550,12 +550,12 @@ qcsi_send_ind
 @param[in]  ind_buf_len              Size of the indication buffer.
 
 @retval    QCSI_NO_ERR            Success.
-@retval    QCSI_.....             Look into the enumeration qcsi_error for
+@retval    QCSI_.....             Look into the enumeration qmi_csi_error_type for
                                      the error values.
 */
 /*=========================================================================*/
-qcsi_error
-qcsi_send_ind_raw
+qmi_csi_error_type
+qmi_csi_send_ind_raw
 (
 	qmi_client_handle  client_handle,
 	unsigned int       msg_id,
@@ -564,7 +564,7 @@ qcsi_send_ind_raw
 );
 
 /*=============================================================================
-  FUNCTION  qcsi_send_broadcast_ind
+  FUNCTION  qmi_csi_send_broadcast_ind
 =============================================================================*/
 /*!
 @brief
@@ -579,13 +579,13 @@ qcsi_send_ind_raw
 @param[in]  ind_c_struct_len         Size of the broadcast indication
 
 @retval    QCSI_NO_ERR            Success
-@retval    QCSI_.....             Look into the enumeration qcsi_error for
+@retval    QCSI_.....             Look into the enumeration qmi_csi_error_type for
                                      the error values.
 */
 /*=========================================================================*/
 
-qcsi_error
-qcsi_send_broadcast_ind
+qmi_csi_error_type
+qmi_csi_send_broadcast_ind
 (
 	qcsi_service_handle   service_provider,
 	unsigned int             msg_id,
@@ -608,13 +608,13 @@ qcsi_send_broadcast_ind
 @param[in]  ind_buf_len              Size of the broadcast indication
 
 @retval    qcsi_NO_ERR            Success
-@retval    QCSI_.....             Look into the enumeration qcsi_error for
+@retval    QCSI_.....             Look into the enumeration qmi_csi_error_type for
                                      the error values.
 */
 /*=========================================================================*/
 
-qcsi_error
-qcsi_send_broadcast_ind_raw
+qmi_csi_error_type
+qmi_csi_send_broadcast_ind_raw
 (
 	qcsi_service_handle   service_provider,
 	unsigned int             msg_id,
@@ -629,15 +629,15 @@ qcsi_send_broadcast_ind_raw
 @brief
   Unregisters a server.
 
-@param[in]  service_provider         Handle given in the qcsi_register by
+@param[in]  service_provider         Handle given in the qmi_csi_register by
                                      the service.
 @retval     QCSI_NO_ERR           Success
-@retval     QCSI_.....            Look into the enumeration qcsi_error for
+@retval     QCSI_.....            Look into the enumeration qmi_csi_error_type for
                                      the error values.
 */
 /*=========================================================================*/
-qcsi_error
-qcsi_unregister
+qmi_csi_error_type
+qmi_csi_unregister
 (
 	qcsi_service_handle service_provider
 );

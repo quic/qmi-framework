@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 #include "qmi_common.h"
-#include "qcsi.h"
+#include "qmi_csi.h"
 
 /**
  * @brief The data structure looks as follows:
@@ -236,7 +236,7 @@ typedef void *(*qcsi_open_fn_type)
  *
  * @retval QCSI_NO_ERR Success.
  */
-typedef qcsi_error (*qcsi_reg_fn_type)
+typedef qmi_csi_error_type (*qcsi_reg_fn_type)
 (
 	void *handle,
 	uint32_t service_id,
@@ -261,7 +261,7 @@ typedef qcsi_error (*qcsi_reg_fn_type)
  *
  * @retval QCSI_NO_ERR Success.
  */
-typedef qcsi_error (*qcsi_send_fn_type)
+typedef qmi_csi_error_type (*qcsi_send_fn_type)
 (
 	void *handle,
 	void *addr,
@@ -338,7 +338,7 @@ typedef struct qcsi_xport_ops_s {
  * param[in]   xport_data         Opaque data associated with the transport,
  *                               such as port ID or other parameters.
  */
-qcsi_error qcsi_init
+qmi_csi_error_type qcsi_init
 (
         qcsi_xport_ops_type     *xport_ops,
         void                    *xport_data
@@ -348,7 +348,7 @@ qcsi_error qcsi_init
  * @brief function is used to deregister a transport with the infrastructure.
  *
  */
-qcsi_error qcsi_deinit(void);
+qmi_csi_error_type qcsi_deinit(void);
 
 /**
  * @brief Signal the infrastructure that a previously busy endpoint is now
@@ -373,7 +373,7 @@ void qcsi_xport_resume_client
  *
  * @retval QCSI_NO_ERR Success.
  */
-qcsi_error qcsi_xport_connect
+qmi_csi_error_type qcsi_xport_connect
 (
 	qcsi_xport_type *xport,
 	void *addr
@@ -391,7 +391,7 @@ qcsi_error qcsi_xport_connect
  *
  * @retval QCSI_NO_ERR Success.
  */
-qcsi_error qcsi_xport_recv
+qmi_csi_error_type qcsi_xport_recv
 (
 	qcsi_xport_type *xport,
 	void *addr,
@@ -410,7 +410,7 @@ qcsi_error qcsi_xport_recv
  *
  * @retval QCSI_NO_ERR Success.
  */
-qcsi_error qcsi_xport_disconnect
+qmi_csi_error_type qcsi_xport_disconnect
 (
 	qcsi_xport_type *xport,
 	void *addr

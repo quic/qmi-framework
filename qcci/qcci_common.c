@@ -10,15 +10,15 @@
  * indications.
  *
  * @note
- * qmi_client_init() needs to be called before sending or receiving any
+ * qmi_cci_init() needs to be called before sending or receiving any
  * service-specific messages.
  */
 #include <string.h>
-#include "qmi_client.h"
+#include "qmi_cci.h"
 #include "qmi_idl_lib.h"
 #include "qmi_idl_lib_internal.h"
 #include "qcci_os.h"
-#include "qcci_internal.h"
+#include "qcci_common.h"
 
 /**
  * @brief Macro for copying OS parameters.
@@ -199,13 +199,13 @@ static void qcci_log_rx(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-static qmi_client_error_type qcci_service_info_get(
+static qmi_cci_error_type qcci_service_info_get(
 	qmi_idl_service_object_type	service_obj,
 	uint32_t 			*service_id,
 	uint32_t 			*idl_version,
 	uint32_t 			*max_msg_len)
 {
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 
 	if (!service_obj)
 		return QMI_CLIENT_PARAM_ERR;
@@ -246,17 +246,17 @@ static qmi_client_error_type qcci_service_info_get(
  * @retval QMI_SERVICE_ERR Service error.
  * @retval QMI_CLIENT_ALLOC_FAILURE Allocation failure.
  */
-static qmi_client_error_type qcci_service_lookup(
+static qmi_cci_error_type qcci_service_lookup(
 	qcci_client_type	*clnt,
 	qcci_service_info	*svc)
 {
 	qmi_service_info *service_array = NULL;
 	unsigned int num_entries = 0, num_services = 0, i;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 
 	/* redo lookup to make sure the server actually exits */
 	while (1) {
-		rc = qmi_client_get_service_list(clnt->service_obj,
+		rc = qmi_cci_get_service_list(clnt->service_obj,
 				service_array, &num_entries, &num_services);
 		if (rc != QMI_NO_ERR) {
 			if (service_array) {
@@ -392,7 +392,7 @@ static void qcci_client_unlink(qcci_client_type *clnt)
  * @note The client handle will be inserted into the client list.
  *       The pointer MUST be freed using qcci_client_free() only.
  */
-static qmi_client_error_type qcci_client_alloc(
+static qmi_cci_error_type qcci_client_alloc(
 	qmi_idl_service_object_type	service_obj,
 	qcci_client_category_type	category,
 	qmi_client_os_params		*os_params,
@@ -593,7 +593,7 @@ static void qcci_client_put_ref(qcci_client_type *clnt)
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_TRANSPORT_ERR Transport error.
  */
-static qmi_client_error_type qcci_client_xport_open(
+static qmi_cci_error_type qcci_client_xport_open(
 	qcci_client_type	*clnt,
 	uint32_t		service_id,
 	uint32_t		idl_version,
@@ -716,7 +716,7 @@ static void qcci_txn_put_ref(
  *
  * @note The transaction is added to the client's outstanding transaction list.
  */
-static qmi_client_error_type qcci_get_txn(
+static qmi_cci_error_type qcci_get_txn(
 	qcci_client_type		*clnt,
 	qcci_txn_enum_type		type,
 	unsigned int			msg_id,
@@ -780,12 +780,12 @@ static qmi_client_error_type qcci_get_txn(
  *
  * @note Caller must have a reference to the client structure.
  */
-static qmi_client_error_type qcci_remove_txn(
+static qmi_cci_error_type qcci_remove_txn(
 	qcci_client_type	*clnt,
 	qcci_txn_type	*txn)
 {
 	qcci_txn_type *i;
-	qmi_client_error_type rc = QMI_INTERNAL_ERR;
+	qmi_cci_error_type rc = QMI_INTERNAL_ERR;
 
 	if (!clnt || !txn)
 		return rc;
@@ -853,7 +853,7 @@ static void qcci_txn_handle_error(
  */
 static void qcci_client_txns_cleanup(
 	qcci_client_type	*clnt,
-	qmi_client_error_type	error)
+	qmi_cci_error_type	error)
 
 {
 	qcci_txn_type *txn;
@@ -902,7 +902,7 @@ static void qcci_client_txns_cleanup(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_INTERNAL_ERR Internal error.
  */
-static qmi_client_error_type qcci_txn_rx_process_resp(
+static qmi_cci_error_type qcci_txn_rx_process_resp(
 	qcci_client_type	*clnt,
 	uint16_t		txn_id,
 	uint16_t		msg_id,
@@ -976,7 +976,7 @@ txn_put_ref_bail:
  *
  * @retval QMI_NO_ERR Success.
  */
-static qmi_client_error_type qcci_txn_rx_process_ind(
+static qmi_cci_error_type qcci_txn_rx_process_ind(
 	qcci_client_type	*clnt,
 	uint16_t		msg_id,
 	uint8_t			*buf,
@@ -1087,7 +1087,7 @@ static void qcci_flush_tx_q(qcci_client_type *clnt)
  *       The caller should free the buffer only if this function returns error.
  *       The caller should provide buffers which are allocated on the heap only.
  */
-static qmi_client_error_type qcci_msg_send(
+static qmi_cci_error_type qcci_msg_send(
 	qcci_client_type	*clnt,
 	qcci_txn_type	*txn,
 	void			*msg,
@@ -1152,7 +1152,7 @@ static qmi_client_error_type qcci_msg_send(
  * @retval QMI_CLIENT_ALLOC_FAILURE Allocation failure.
  * @retval QMI_IDL_LIB_NO_ERR IDL library error.
  */
-static qmi_client_error_type qcci_msg_encode_and_send(
+static qmi_cci_error_type qcci_msg_encode_and_send(
 	qcci_client_type	*clnt,
 	qcci_txn_type	*txn,
 	void			*c_struct,
@@ -1229,11 +1229,11 @@ static qmi_client_error_type qcci_msg_encode_and_send(
  *
  * @note The caller is required to hold a reference to the client structure.
  */
-static qmi_client_error_type qcci_response_wait_loop(
+static qmi_cci_error_type qcci_response_wait_loop(
 	qcci_txn_type	*txn,
 	unsigned int		timeout_msecs)
 {
-	qmi_client_error_type ret = QMI_NO_ERR;
+	qmi_cci_error_type ret = QMI_NO_ERR;
 
 	do {
 		QMI_CCI_OS_SIGNAL_WAIT(&txn->signal, timeout_msecs);
@@ -1274,7 +1274,7 @@ static qmi_client_error_type qcci_response_wait_loop(
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-static qmi_client_error_type qcci_send_msg_async(
+static qmi_cci_error_type qcci_send_msg_async(
 	qmi_client_type			user_handle,
 	unsigned int			msg_id,
 	void				*req,
@@ -1288,7 +1288,7 @@ static qmi_client_error_type qcci_send_msg_async(
 {
 	qcci_client_type *clnt;
 	qcci_txn_type *txn = NULL;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 
 	if (!resp)
 		return QMI_CLIENT_PARAM_ERR;
@@ -1383,7 +1383,7 @@ clnt_put_ref_bail:
  *
  * @note The caller must have obtained a reference to the client handle.
  */
-static qmi_client_error_type qcci_send_msg_sync(
+static qmi_cci_error_type qcci_send_msg_sync(
 	qmi_client_type		user_handle,
 	unsigned int		msg_id,
 	void			*req,
@@ -1396,7 +1396,7 @@ static qmi_client_error_type qcci_send_msg_sync(
 {
 	qcci_client_type *clnt;
 	qcci_txn_type *txn;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 
 	clnt = qcci_client_get_ref(user_handle, 0);
 	if(!clnt)
@@ -1414,7 +1414,7 @@ static qmi_client_error_type qcci_send_msg_sync(
 			*resp_recv_len = txn->reply_len;
 	}
 
-	qmi_client_delete_async_txn(user_handle, txn);
+	qmi_cci_delete_async_txn(user_handle, txn);
 	qcci_txn_put_ref(clnt, txn);
 
 clnt_put_ref_bail:
@@ -1423,9 +1423,9 @@ clnt_put_ref_bail:
 }
 
 /**
- * @brief Internal callback function used by qmi_client_release().
+ * @brief Internal callback function used by qmi_cci_release().
  *
- * This function is an internal callback used by qmi_client_release() to unblock
+ * This function is an internal callback used by qmi_cci_release() to unblock
  * the release process.
  *
  * @param[in] cb_data Pointer to callback data.
@@ -1456,7 +1456,7 @@ static void qcci_client_release_cb_internal(void *cb_data)
  *
  * @note The caller must have obtained a reference to the client handle.
  */
-qmi_client_error_type qcci_client_cmn_init(
+qmi_cci_error_type qcci_client_cmn_init(
 	qmi_service_info		*service_info,
 	qmi_idl_service_object_type	service_obj,
 	qmi_client_ind_cb		ind_cb,
@@ -1468,7 +1468,7 @@ qmi_client_error_type qcci_client_cmn_init(
 	qcci_service_info *svc = (qcci_service_info *)service_info;
 	qcci_client_type *clnt;
 	uint32_t service_id, idl_version, max_msg_len;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 
 	if (!user_handle)
 		return QMI_CLIENT_PARAM_ERR;
@@ -1631,7 +1631,7 @@ void qcci_xport_resume(qcci_client_type *clnt)
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_INTERNAL_ERR Internal error.
  */
-qmi_client_error_type qcci_xport_recv(
+qmi_cci_error_type qcci_xport_recv(
 	qcci_client_type	*clnt,
 	void			*addr,
 	uint8_t			*buf,
@@ -1758,7 +1758,7 @@ void qcci_xport_event_server_error(
  * @note This function is NOT re-enterable or thread safe. The only safe place
  *       to call this is during initialization.
  */
-qmi_client_error_type qcci_init(
+qmi_cci_error_type qcci_init(
 	qcci_xport_ops_type	*xport_ops,
 	void			*xport_data)
 {
@@ -1791,7 +1791,7 @@ qmi_client_error_type qcci_init(
  * @note This function is NOT re-enterable or thread safe. The only safe place
  *       to call this is during library de-initialization.
  */
-qmi_client_error_type qcci_deinit(void)
+qmi_cci_error_type qcci_deinit(void)
 {
 	if (qcci_fw_inited) {
 		qcci_fw_inited = 0;
@@ -1815,7 +1815,7 @@ qmi_client_error_type qcci_deinit(void)
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_notifier_init(
+qmi_cci_error_type qmi_cci_notifier_init(
 	qmi_idl_service_object_type	service_obj,
 	qmi_client_os_params		*os_params,
 	qmi_client_type			*user_handle)
@@ -1839,7 +1839,7 @@ qmi_client_error_type qmi_client_notifier_init(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_init(
+qmi_cci_error_type qmi_cci_init(
 	qmi_service_info		*service_info,
 	qmi_idl_service_object_type	service_obj,
 	qmi_client_ind_cb		ind_cb,
@@ -1870,7 +1870,7 @@ qmi_client_error_type qmi_client_init(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_send_raw_msg_async(
+qmi_cci_error_type qmi_cci_send_raw_msg_async(
 	qmi_client_type				user_handle,
 	unsigned int				msg_id,
 	void					*req_buf,
@@ -1906,7 +1906,7 @@ qmi_client_error_type qmi_client_send_raw_msg_async(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_send_msg_async(
+qmi_cci_error_type qmi_cci_send_msg_async(
 	qmi_client_type			user_handle,
 	unsigned int			msg_id,
 	void				*req_c_struct,
@@ -1937,7 +1937,7 @@ qmi_client_error_type qmi_client_send_msg_async(
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  * @retval QMI_INVALID_TXN Invalid transaction.
  */
-qmi_client_error_type qmi_client_delete_async_txn(
+qmi_cci_error_type qmi_cci_delete_async_txn(
 	qmi_client_type	user_handle,
 	qmi_txn_handle	async_txn_handle)
 {
@@ -2005,7 +2005,7 @@ bail:
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_send_raw_msg_sync(
+qmi_cci_error_type qmi_client_send_raw_msg_sync(
 	qmi_client_type	user_handle,
 	unsigned int	msg_id,
 	void		*req_buf,
@@ -2038,7 +2038,7 @@ qmi_client_error_type qmi_client_send_raw_msg_sync(
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_send_msg_sync(
+qmi_cci_error_type qmi_cci_send_msg_sync(
 	qmi_client_type	user_handle,
 	unsigned int	msg_id,
 	void		*req_c_struct,
@@ -2065,7 +2065,7 @@ qmi_client_error_type qmi_client_send_msg_sync(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_release_async(
+qmi_cci_error_type qmi_cci_release_async(
 	qmi_client_type		user_handle,
 	qmi_client_release_cb	release_cb,
 	void			*release_cb_data)
@@ -2107,10 +2107,10 @@ qmi_client_error_type qmi_client_release_async(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_release(qmi_client_type user_handle)
+qmi_cci_error_type qmi_cci_release(qmi_client_type user_handle)
 {
 	qcci_client_type *clnt;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 	QMI_CCI_OS_SIGNAL signal;
 
 	clnt = qcci_client_get_ref(user_handle, 0);
@@ -2123,7 +2123,7 @@ qmi_client_error_type qmi_client_release(qmi_client_type user_handle)
 	/* Release this call's reference */
 	qcci_client_put_ref(clnt);
 
-	rc = qmi_client_release_async(user_handle, qcci_client_release_cb_internal,
+	rc = qmi_cci_release_async(user_handle, qcci_client_release_cb_internal,
 				      (void *)&signal);
 
 	if (rc == QMI_NO_ERR)
@@ -2150,7 +2150,7 @@ qmi_client_error_type qmi_client_release(qmi_client_type user_handle)
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_message_encode(
+qmi_cci_error_type qmi_cci_message_encode(
 	qmi_client_type			user_handle,
 	qmi_idl_type_of_message_type	req_resp_ind,
 	unsigned int			message_id,
@@ -2197,7 +2197,7 @@ qmi_client_error_type qmi_client_message_encode(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_message_decode(
+qmi_cci_error_type qmi_cci_message_decode(
 	qmi_client_type			user_handle,
 	qmi_idl_type_of_message_type	req_resp_ind,
 	unsigned int			message_id,
@@ -2239,7 +2239,7 @@ qmi_client_error_type qmi_client_message_decode(
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_SERVICE_ERR Service error.
  */
-qmi_client_error_type qmi_client_get_service_list(
+qmi_cci_error_type qmi_cci_get_service_list(
 	qmi_idl_service_object_type	service_obj,
 	qmi_service_info		*service_info_array,
 	unsigned int			*num_entries,
@@ -2300,11 +2300,11 @@ qmi_client_error_type qmi_client_get_service_list(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_get_any_service(
+qmi_cci_error_type qmi_cci_get_any_service(
 	qmi_idl_service_object_type	service_obj,
 	qmi_service_info		*service_info)
 {
-	return qmi_client_get_service_instance(service_obj,
+	return qmi_cci_get_service_instance(service_obj,
 				QMI_CLIENT_INSTANCE_ANY, service_info);
 }
 #endif
@@ -2321,24 +2321,24 @@ qmi_client_error_type qmi_client_get_any_service(
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_get_service_instance(
+qmi_cci_error_type qmi_cci_get_service_instance(
 	qmi_idl_service_object_type	service_obj,
 	qmi_service_instance		instance_id,
 	qmi_service_info		*service_info)
 {
 	unsigned int num_entries = 1, num_services, i;
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 	qmi_service_info *service_array;
 
 	if (!service_info)
 		return QMI_CLIENT_PARAM_ERR;
 
 	if (instance_id == QMI_CLIENT_INSTANCE_ANY) {
-		return qmi_client_get_service_list(service_obj, service_info,
+		return qmi_cci_get_service_list(service_obj, service_info,
 						&num_entries, &num_services);
 	}
 
-	rc = qmi_client_get_service_list(service_obj, NULL,
+	rc = qmi_cci_get_service_list(service_obj, NULL,
 					NULL, &num_services);
 	if (rc != QMI_NO_ERR)
 		return rc;
@@ -2348,7 +2348,7 @@ qmi_client_error_type qmi_client_get_service_instance(
 		return QMI_CLIENT_ALLOC_FAILURE;
 
 	num_entries = num_services;
-	rc = qmi_client_get_service_list(service_obj, service_array,
+	rc = qmi_cci_get_service_list(service_obj, service_array,
 					&num_entries, &num_services);
 	if (rc != QMI_NO_ERR)
 		goto free_bail;
@@ -2380,7 +2380,7 @@ free_bail:
  * @retval QMI_NO_ERR Success.
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  */
-qmi_client_error_type qmi_client_get_instance_id(
+qmi_cci_error_type qmi_cci_get_instance_id(
 	qmi_service_info	*service_info,
 	qmi_service_instance	*instance_id)
 {
@@ -2406,7 +2406,7 @@ qmi_client_error_type qmi_client_get_instance_id(
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_register_log_cb(
+qmi_cci_error_type qmi_cci_register_log_cb(
 	qmi_client_type		user_handle,
 	qmi_client_log_cb	log_cb,
 	void			*log_cb_data)
@@ -2446,7 +2446,7 @@ qmi_client_error_type qmi_client_register_log_cb(
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  * @retval QMI_SERVICE_ERR Service error.
  */
-qmi_client_error_type qmi_client_register_error_cb(
+qmi_cci_error_type qmi_cci_register_error_cb(
 	qmi_client_type		user_handle,
 	qmi_client_error_cb	err_cb,
 	void 			*err_cb_data)
@@ -2497,7 +2497,7 @@ qmi_client_error_type qmi_client_register_error_cb(
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_register_notify_cb
+qmi_cci_error_type qmi_cci_register_notify_cb
 (
 	qmi_client_type user_handle,
 	qmi_client_notify_cb notify_cb,
@@ -2548,7 +2548,7 @@ qmi_client_error_type qmi_client_register_notify_cb
  * @retval QMI_CLIENT_PARAM_ERR Parameter error.
  * @retval QMI_CLIENT_INVALID_CLNT Invalid client.
  */
-qmi_client_error_type qmi_client_get_async_txn_id(
+qmi_cci_error_type qmi_client_get_async_txn_id(
 	qmi_client_type	user_handle,
 	qmi_txn_handle	async_txn_handle,
 	uint32_t	*txn_id)
@@ -2556,7 +2556,7 @@ qmi_client_error_type qmi_client_get_async_txn_id(
 	qcci_txn_type *i;
 	qcci_client_type *clnt;
 	qcci_txn_type *txn = (qcci_txn_type *)async_txn_handle;
-	qmi_client_error_type rc = QMI_INVALID_TXN;
+	qmi_cci_error_type rc = QMI_INVALID_TXN;
 
 	if (!txn_id || !txn)
 		return QMI_CLIENT_PARAM_ERR;
@@ -2607,7 +2607,7 @@ bail:
  * @retval QMI_SERVICE_ERR Service error.
  * @retval QMI_TIMEOUT_ERR Timeout error.
  */
-qmi_client_error_type qmi_client_init_instance(
+qmi_cci_error_type qmi_cci_init_instance(
 	qmi_idl_service_object_type	service_obj,
 	qmi_service_instance		instance_id,
 	qmi_client_ind_cb		ind_cb,
@@ -2616,7 +2616,7 @@ qmi_client_error_type qmi_client_init_instance(
 	uint32_t			timeout,
 	qmi_client_type			*user_handle)
 {
-	qmi_client_error_type rc;
+	qmi_cci_error_type rc;
 	qmi_client_type notifier;
 	qmi_service_info info;
 	qmi_client_os_params notifier_os_params;
@@ -2626,9 +2626,9 @@ qmi_client_error_type qmi_client_init_instance(
 
 	/* The common case when we do not have to wait for the service,
 	 * avoid creation of the notifier */
-	rc = qmi_client_get_service_instance(service_obj, instance_id, &info);
+	rc = qmi_cci_get_service_instance(service_obj, instance_id, &info);
 	if (rc == QMI_NO_ERR) {
-		rc = qmi_client_init(&info, service_obj, ind_cb,
+		rc = qmi_cci_init(&info, service_obj, ind_cb,
 				ind_cb_data, os_params, user_handle);
 		if (rc == QMI_NO_ERR || rc != QMI_SERVICE_ERR)
 			return rc;
@@ -2637,17 +2637,17 @@ qmi_client_error_type qmi_client_init_instance(
 	memset(&notifier_os_params, 0, sizeof(notifier_os_params));
 	QMI_CCI_COPY_OS_PARAMS(&notifier_os_params, os_params);
 
-	rc = qmi_client_notifier_init(service_obj, &notifier_os_params,
+	rc = qmi_cci_notifier_init(service_obj, &notifier_os_params,
 					&notifier);
 	if (rc != QMI_NO_ERR)
 		return rc;
 
 	while (1) {
 		QMI_CCI_OS_SIGNAL_CLEAR(&notifier_os_params);
-		rc = qmi_client_get_service_instance(service_obj,
+		rc = qmi_cci_get_service_instance(service_obj,
 						instance_id, &info);
 		if (rc == QMI_NO_ERR) {
-			rc = qmi_client_init(&info, service_obj,
+			rc = qmi_cci_init(&info, service_obj,
 					ind_cb, ind_cb_data,
 					os_params, user_handle);
 			/* Success or a generic error occured */
@@ -2660,6 +2660,6 @@ qmi_client_error_type qmi_client_init_instance(
 			break;
 		}
 	}
-	qmi_client_release(notifier);
+	qmi_cci_release(notifier);
 	return rc;
 }

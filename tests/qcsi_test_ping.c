@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "qcsi.h"
+#include "qmi_csi.h"
 #include "test_service_v01.h"
 
 #ifdef QMI_FW_ADB_LOG
@@ -127,7 +127,7 @@ static void test_create_ind_pattern(test_data_ind_msg_v01 *IndMsg, int iIndSz)
 static void test_send_indications(ind_type *params)
 {
   int i;
-  qcsi_error resp_err;
+  qmi_csi_error_type resp_err;
   test_data_ind_reg_resp_msg_v01 resp;
   int num_inds,ind_size,ind_delay;
   /* Freed at the end of this function */
@@ -158,12 +158,12 @@ static void test_send_indications(ind_type *params)
   resp.resp.result = QMI_RESULT_SUCCESS_V01; /* QMI_RESULT_SUCCESS*/
   resp.resp.error = QMI_ERR_NONE_V01;       /* QMI_ERR_NONE */
 
-  resp_err = qcsi_send_resp(params->req_handle, params->msg_id,
+  resp_err = qmi_csi_send_resp(params->req_handle, params->msg_id,
                 &resp, sizeof(resp));
   if(resp_err != QCSI_NO_ERR)
   {
-    QMI_FW_LOGE("qcsi_send_resp returned error: %d\n", resp_err);
-	printf("qcsi_send_resp returned error: %d\n", resp_err);
+    QMI_FW_LOGE("qmi_csi_send_resp returned error: %d\n", resp_err);
+	printf("qmi_csi_send_resp returned error: %d\n", resp_err);
   }
 
   ind->data_len = ind_size;
@@ -176,12 +176,12 @@ static void test_send_indications(ind_type *params)
     // TODO: define something in the target header for sleep
     //usleep(ind_delay);
     //printf("sending indication %d of %d\n",i+1,num_inds);
-    resp_err = qcsi_send_ind(params->clnt->clnt, QMI_TEST_DATA_IND_V01, ind,
+    resp_err = qmi_csi_send_ind(params->clnt->clnt, QMI_TEST_DATA_IND_V01, ind,
                   sizeof(test_data_ind_msg_v01));
     if(resp_err != QCSI_NO_ERR)
     {
-      QMI_FW_LOGE("qcsi_send_ind returned error: %d\n",resp_err);
-	  printf("qcsi_send_ind returned error: %d\n",resp_err);
+      QMI_FW_LOGE("qmi_csi_send_ind returned error: %d\n",resp_err);
+	  printf("qmi_csi_send_ind returned error: %d\n",resp_err);
     }
   }
   printf("Indications Sent: %d\n", i);
@@ -212,7 +212,7 @@ static qcsi_cb_error test_response(client_info_type *clnt_info,
           int req_c_struct_len, void *service_cookie)
 {
   qcsi_cb_error rc = QCSI_CB_INTERNAL_ERR;
-  qcsi_error resp_err;
+  qmi_csi_error_type resp_err;
 
   /* The response message is small, and can safely be declared on the stack.
      See test_ping_data_response for a message that is large and uses
@@ -225,10 +225,10 @@ static qcsi_cb_error test_response(client_info_type *clnt_info,
      safe to send it within the callback context, and does not require dispatch
      to a new thread.  See ping_data_ind_registration to see the dispatch of
      message handling */
-  resp_err = qcsi_send_resp(req_handle, msg_id, &resp, sizeof(resp));
+  resp_err = qmi_csi_send_resp(req_handle, msg_id, &resp, sizeof(resp));
   if(resp_err != QCSI_NO_ERR)
   {
-    QMI_FW_LOGE("qcsi_send_resp returned error: %d\n",resp_err);
+    QMI_FW_LOGE("qmi_csi_send_resp returned error: %d\n",resp_err);
   }
   else
   {
@@ -263,7 +263,7 @@ static qcsi_cb_error test_data_response(client_info_type *clnt_info,
 {
   uint32_t iCount = 0;
   qcsi_cb_error rc = QCSI_CB_INTERNAL_ERR;
-  qcsi_error resp_err;
+  qmi_csi_error_type resp_err;
   service_context_type *context = (service_context_type*)service_cookie;
 
   /*Request and response messages*/
@@ -297,11 +297,11 @@ static qcsi_cb_error test_data_response(client_info_type *clnt_info,
   resp->resp.result = QMI_RESULT_SUCCESS_V01; /* QMI_RESULT_SUCCESS */
   resp->resp.error = QMI_ERR_NONE_V01;       /* QMI_ERR_NONES */
 
-  resp_err = qcsi_send_resp(req_handle, msg_id, resp,
+  resp_err = qmi_csi_send_resp(req_handle, msg_id, resp,
                 sizeof(test_data_resp_msg_v01));
   if(resp_err != QCSI_NO_ERR)
   {
-    QMI_FW_LOGE("qcsi_send_resp returned error: %d\n", resp_err);
+    QMI_FW_LOGE("qmi_csi_send_resp returned error: %d\n", resp_err);
   }
   else
   {
@@ -493,9 +493,9 @@ void *qmi_test_service_register_service(qcsi_os_params *os_params,
   uSvcOptions.instance_id = serv_instce; // TEST_APT_INSTANCE_ID
 
   qmi_idl_service_object_type test_service_object = test_get_service_object_v01();
-  qcsi_error rc = QCSI_INTERNAL_ERR;
+  qmi_csi_error_type rc = QCSI_INTERNAL_ERR;
 
-  rc = qcsi_register_with_options(test_service_object, test_connect_cb,
+  rc = qmi_csi_register_with_options(test_service_object, test_connect_cb,
           test_disconnect_cb, test_handle_req_cb, &service_cookie,
           os_params, &uSvcOptions, &service_cookie.service_handle);
 

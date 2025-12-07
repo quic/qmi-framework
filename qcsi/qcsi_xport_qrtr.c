@@ -10,7 +10,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include "qmi_idl_lib.h"
-#include "qcsi.h"
+#include "qmi_csi.h"
 #include "qcsi_common.h"
 #include "qcsi_os.h"
 #include <linux/qrtr.h>
@@ -162,7 +162,7 @@ static void purge_tx_q
 	FREE(dest);
 }
 
-static qcsi_error  put_tx_q
+static qmi_csi_error_type  put_tx_q
 (
 	struct xport_handle *xp,
 	struct xport_qrtr_addr *addr,
@@ -173,7 +173,7 @@ static qcsi_error  put_tx_q
 {
 	struct dest_s *dest;
 	struct buf_s *buf;
-	qcsi_error rc = QCSI_NO_ERR;
+	qmi_csi_error_type rc = QCSI_NO_ERR;
 
 	dest = get_tx_q(xp, addr);
 	if(!dest) {
@@ -291,7 +291,7 @@ static void handle_resume_tx
 		qcsi_xport_resume_client(xp->xport, addr);
 }
 
-static qcsi_error init_socket
+static qmi_csi_error_type init_socket
 (
 	struct xport_handle *xp,
 	qcsi_os_params *os_params
@@ -365,7 +365,7 @@ xport_open_free_xp:
 	return NULL;
 }
 
-static qcsi_error xport_reg
+static qmi_csi_error_type xport_reg
 (
 	void *handle,
 	uint32_t service_id,
@@ -417,7 +417,7 @@ static qcsi_error xport_reg
 	return QCSI_NO_ERR;
 }
 
-static qcsi_error xport_unreg
+static qmi_csi_error_type xport_unreg
 (
 	void *handle,
 	uint32_t service_id,
@@ -430,7 +430,7 @@ static qcsi_error xport_unreg
 	return QCSI_NO_ERR;
 }
 
-static qcsi_error xport_send
+static qmi_csi_error_type xport_send
 (
 	void *handle,
 	void *addr,
@@ -444,7 +444,7 @@ static qcsi_error xport_send
 	struct sockaddr_qrtr sq;
 	struct xport_qrtr_addr *s_addr = (struct xport_qrtr_addr *)addr;
 	struct dest_s *dest;
-	qcsi_error rc;
+	qmi_csi_error_type rc;
 	ssize_t sendto_rc;
 	uint32_t max_q_len = 0;
 
