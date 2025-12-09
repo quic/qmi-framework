@@ -23,24 +23,25 @@
 extern "C" {
 #endif
 
-#define QMI_NO_ERR                0
-#define QMI_INTERNAL_ERR          (-1)
-#define QMI_SERVICE_ERR           (-2)
-#define QMI_TIMEOUT_ERR           (-3)
-#define QMI_EXTENDED_ERR          (-4)
-#define QMI_PORT_NOT_OPEN_ERR     (-5)
-#define QMI_MEMCOPY_ERROR         (-13)
-#define QMI_INVALID_TXN           (-14)
-#define QMI_CLIENT_ALLOC_FAILURE  (-15)
-#define QMI_CLIENT_TRANSPORT_ERR  (-16)
-#define QMI_CLIENT_PARAM_ERR      (-17)
-#define QMI_CLIENT_INVALID_CLNT   (-18)
-#define QMI_CLIENT_FW_NOT_UP      (-19)
-#define QMI_CLIENT_INVALID_SIG    (-20)
-#define QMI_XPORT_BUSY_ERR        (-21)
+typedef enum {
+    QMI_NO_ERR = 0,
+    QMI_INTERNAL_ERR = -1,
+    QMI_SERVICE_ERR = -2,
+    QMI_TIMEOUT_ERR = -3,
+    QMI_EXTENDED_ERR = -4,
+    QMI_PORT_NOT_OPEN_ERR = -5,
+    QMI_MEMCOPY_ERROR = -13,
+    QMI_INVALID_TXN = -14,
+    QMI_CLIENT_ALLOC_FAILURE = -15,
+    QMI_CLIENT_TRANSPORT_ERR = -16,
+    QMI_CLIENT_PARAM_ERR = -17,
+    QMI_CLIENT_INVALID_CLNT = -18,
+    QMI_CLIENT_FW_NOT_UP = -19,
+    QMI_CLIENT_INVALID_SIG = -20,
+    QMI_XPORT_BUSY_ERR = -21
+} qmi_cci_error_type;
 
 typedef struct         qmi_client_struct *qmi_client_type;
-typedef int            qmi_client_error_type;
 typedef void           *qmi_txn_handle;
 
 /** Magic instance ID for .. to indicate that no preference on instance ID */
@@ -102,7 +103,7 @@ typedef void (*qmi_client_log_cb)
 	unsigned int                   txn_id,
 	const void                     *raw_msg,
 	unsigned int                   raw_msg_len,
-	qmi_client_error_type          status,
+	qmi_cci_error_type          status,
 	void                           *cookie
 );
 
@@ -173,7 +174,7 @@ typedef void (*qmi_client_recv_raw_msg_async_cb)
 	void                           *resp_buf,
 	unsigned int                   resp_buf_len,
 	void                           *resp_cb_data,
-	qmi_client_error_type          transp_err
+	qmi_cci_error_type          transp_err
 );
 
 /*=============================================================================
@@ -202,7 +203,7 @@ typedef void (*qmi_client_recv_msg_async_cb)
 	void                           *resp_c_struct,
 	unsigned int                   resp_c_struct_len,
 	void                           *resp_cb_data,
-	qmi_client_error_type          transp_err
+	qmi_cci_error_type          transp_err
 );
 
 /*=============================================================================
@@ -249,12 +250,12 @@ typedef void (*qmi_client_ind_cb)
 typedef void (*qmi_client_error_cb)
 (
 	qmi_client_type user_handle,
-	qmi_client_error_type error,
+	qmi_cci_error_type error,
 	void *err_cb_data
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_notifier_init
+  FUNCTION  qmi_cci_notifier_init
 ===========================================================================*/
 /*!
 @brief
@@ -283,8 +284,8 @@ typedef void (*qmi_client_error_cb)
       registered
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_notifier_init
+extern qmi_cci_error_type
+qmi_cci_notifier_init
 (
 	qmi_idl_service_object_type               service_obj,
 	qmi_client_os_params                      *os_params,
@@ -292,7 +293,7 @@ qmi_client_notifier_init
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_init
+  FUNCTION  qmi_cci_init
 ===========================================================================*/
 /*!
 @brief
@@ -322,8 +323,8 @@ qmi_client_notifier_init
     - QMI connection is opened with the service
 */
 /*=========================================================================*/
-extern  qmi_client_error_type
-qmi_client_init
+extern  qmi_cci_error_type
+qmi_cci_init
 (
 	qmi_service_info                          *service_info,
 	qmi_idl_service_object_type               service_obj,
@@ -336,7 +337,7 @@ qmi_client_init
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_send_raw_msg_async
+  FUNCTION  qmi_cci_send_raw_msg_async
 ===========================================================================*/
 /*!
 @brief
@@ -366,8 +367,8 @@ qmi_client_init
   - Side Effects
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_send_raw_msg_async
+extern qmi_cci_error_type
+qmi_cci_send_raw_msg_async
 (
 	qmi_client_type                   user_handle,
 	unsigned int                      msg_id,
@@ -382,7 +383,7 @@ qmi_client_send_raw_msg_async
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_send_msg_async
+  FUNCTION  qmi_cci_send_msg_async
 ===========================================================================*/
 /*!
 @brief
@@ -415,8 +416,8 @@ qmi_client_send_raw_msg_async
 */
 /*=========================================================================*/
 
-qmi_client_error_type
-qmi_client_send_msg_async
+qmi_cci_error_type
+qmi_cci_send_msg_async
 (
 	qmi_client_type                 user_handle,
 	unsigned int                    msg_id,
@@ -431,7 +432,7 @@ qmi_client_send_msg_async
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_delete_async_txn
+  FUNCTION  qmi_cci_delete_async_txn
 ===========================================================================*/
 /*!
 @brief
@@ -456,8 +457,8 @@ qmi_client_send_msg_async
   by the "users_rsp_cb" callback up until this routine returns.
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_delete_async_txn
+extern qmi_cci_error_type
+qmi_cci_delete_async_txn
 (
 	qmi_client_type  user_handle,
 	qmi_txn_handle   async_txn_handle
@@ -465,7 +466,7 @@ qmi_client_delete_async_txn
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_send_raw_msg_sync
+  FUNCTION  qmi_cci_send_raw_msg_sync
 ===========================================================================*/
 /*!
 @brief
@@ -495,8 +496,8 @@ qmi_client_delete_async_txn
     - None
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_send_raw_msg_sync
+extern qmi_cci_error_type
+qmi_cci_send_raw_msg_sync
 (
 	qmi_client_type           user_handle,
 	unsigned int              msg_id,
@@ -510,7 +511,7 @@ qmi_client_send_raw_msg_sync
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_send_msg_sync
+  FUNCTION  qmi_cci_send_msg_sync
 ===========================================================================*/
 /*!
 @brief
@@ -539,8 +540,8 @@ qmi_client_send_raw_msg_sync
     - None
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_send_msg_sync
+extern qmi_cci_error_type
+qmi_cci_send_msg_sync
 (
 	qmi_client_type    user_handle,
 	unsigned int       msg_id,
@@ -552,7 +553,7 @@ qmi_client_send_msg_sync
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_release_async
+  FUNCTION  qmi_cci_release_async
 ===========================================================================*/
 /*!
 @brief
@@ -577,8 +578,8 @@ qmi_client_send_msg_sync
    - None
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_release_async
+extern qmi_cci_error_type
+qmi_cci_release_async
 (
 	qmi_client_type       user_handle,
 	qmi_client_release_cb release_cb,
@@ -586,7 +587,7 @@ qmi_client_release_async
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_release
+  FUNCTION  qmi_cci_release
 ===========================================================================*/
 /*!
 @brief
@@ -606,8 +607,8 @@ qmi_client_release_async
    - None
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_release
+extern qmi_cci_error_type
+qmi_cci_release
 (
 	qmi_client_type     user_handle
 );
@@ -615,7 +616,7 @@ qmi_client_release
 
 
 /*===========================================================================
-  FUNCTION  qmi_client_message_encode
+  FUNCTION  qmi_cci_message_encode
 ===========================================================================*/
 /*!
 @brief
@@ -636,8 +637,8 @@ qmi_client_release
 @retval    QMI_NO_ERR     Success
 @retval    QMI_IDL_...    Error, see error codes defined in qmi.h*/
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_message_encode
+extern qmi_cci_error_type
+qmi_cci_message_encode
 (
 	qmi_client_type                      user_handle,
 	qmi_idl_type_of_message_type         req_resp_ind,
@@ -650,7 +651,7 @@ qmi_client_message_encode
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_message_decode
+  FUNCTION  qmi_cci_message_decode
 ===========================================================================*/
 /*!
 @brief
@@ -670,8 +671,8 @@ qmi_client_message_encode
 @retval    QMI_IDL_...    Error, see error codes defined in qmi.h
 */
 /*=========================================================================*/
-extern qmi_client_error_type
-qmi_client_message_decode
+extern qmi_cci_error_type
+qmi_cci_message_decode
 (
 	qmi_client_type                         user_handle,
 	qmi_idl_type_of_message_type            req_resp_ind,
@@ -683,7 +684,7 @@ qmi_client_message_decode
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_get_service_list
+  FUNCTION  qmi_cci_get_service_list
 ===========================================================================*/
 /*!
 @brief
@@ -708,8 +709,8 @@ qmi_client_message_decode
 */
 /*=========================================================================*/
 
-qmi_client_error_type
-qmi_client_get_service_list
+qmi_cci_error_type
+qmi_cci_get_service_list
 (
 	qmi_idl_service_object_type   service_obj,
 	qmi_service_info       *service_info_array,
@@ -718,7 +719,7 @@ qmi_client_get_service_list
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_get_any_service
+  FUNCTION  qmi_cci_get_any_service
 ===========================================================================*/
 /*!
 @brief
@@ -739,15 +740,15 @@ qmi_client_get_service_list
    - service_info may be written
 */
 /*=========================================================================*/
-qmi_client_error_type
-qmi_client_get_any_service
+qmi_cci_error_type
+qmi_cci_get_any_service
 (
 	qmi_idl_service_object_type service_obj,
 	qmi_service_info *service_info
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_get_service_instance
+  FUNCTION  qmi_cci_get_service_instance
 ===========================================================================*/
 /*!
 @brief
@@ -770,8 +771,8 @@ qmi_client_get_any_service
    - service_info may be written
 */
 /*=========================================================================*/
-qmi_client_error_type
-qmi_client_get_service_instance
+qmi_cci_error_type
+qmi_cci_get_service_instance
 (
 	qmi_idl_service_object_type service_obj,
 	qmi_service_instance instance_id,
@@ -779,7 +780,7 @@ qmi_client_get_service_instance
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_get_instance_id
+  FUNCTION  qmi_cci_get_instance_id
 ===========================================================================*/
 /*!
 @brief
@@ -794,15 +795,15 @@ qmi_client_get_service_instance
   error code if not successful
 */
 /*=========================================================================*/
-qmi_client_error_type
-qmi_client_get_instance_id
+qmi_cci_error_type
+qmi_cci_get_instance_id
 (
 	qmi_service_info *service_info,
 	qmi_service_instance *instance_id
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_register_error_cb
+  FUNCTION  qmi_cci_register_error_cb
 ===========================================================================*/
 /*!
 @brief
@@ -819,7 +820,7 @@ qmi_client_get_instance_id
          QMI_INTERNAL_ERR Invalid input parameters
 */
 /*=========================================================================*/
-qmi_client_error_type qmi_client_register_error_cb
+qmi_cci_error_type qmi_cci_register_error_cb
 (
 	qmi_client_type user_handle,
 	qmi_client_error_cb err_cb,
@@ -827,7 +828,7 @@ qmi_client_error_type qmi_client_register_error_cb
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_register_notify_cb
+  FUNCTION  qmi_cci_register_notify_cb
 ===========================================================================*/
 /*!
 @brief
@@ -844,7 +845,7 @@ qmi_client_error_type qmi_client_register_error_cb
          QMI_INTERNAL_ERR Invalid input parameters
 */
 /*=========================================================================*/
-qmi_client_error_type qmi_client_register_notify_cb
+qmi_cci_error_type qmi_cci_register_notify_cb
 (
 	qmi_client_type user_handle,
 	qmi_client_notify_cb notify_cb,
@@ -852,7 +853,7 @@ qmi_client_error_type qmi_client_register_notify_cb
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_register_log_cb
+  FUNCTION  qmi_cci_register_log_cb
 ===========================================================================*/
 /*!
 @brief
@@ -869,7 +870,7 @@ qmi_client_error_type qmi_client_register_notify_cb
          QMI_INTERNAL_ERR Invalid input parameters
 */
 /*=========================================================================*/
-qmi_client_error_type qmi_client_register_log_cb
+qmi_cci_error_type qmi_cci_register_log_cb
 (
 	qmi_client_type user_handle,
 	qmi_client_log_cb notify_cb,
@@ -877,7 +878,7 @@ qmi_client_error_type qmi_client_register_log_cb
 );
 
 /*===========================================================================
-  FUNCTION  qmi_client_init_instance
+  FUNCTION  qmi_cci_init_instance
 ===========================================================================*/
 /*!
 @brief
@@ -916,7 +917,7 @@ qmi_client_error_type qmi_client_register_log_cb
 
 */
 /*=========================================================================*/
-qmi_client_error_type qmi_client_init_instance
+qmi_cci_error_type qmi_cci_init_instance
 (
 	qmi_idl_service_object_type service_obj,
 	qmi_service_instance        instance_id,

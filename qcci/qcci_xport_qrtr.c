@@ -16,9 +16,9 @@
 #include <poll.h>
 #include <fcntl.h>
 #include <linux/qrtr.h>
-#include "qmi_client.h"
+#include "qmi_cci.h"
 #include "qcci_os.h"
-#include "qcci_internal.h"
+#include "qcci_common.h"
 
 #define ALIGN_SIZE(x) ((4 - ((x) & 3)) & 3)
 
@@ -658,7 +658,7 @@ xport_open_free_xp:
  *
  * @return	QMI_NO_ERR on success, error code otherwise.
  */
-static qmi_client_error_type xport_send
+static qmi_cci_error_type xport_send
 (
 	void *handle,
 	void *addr,

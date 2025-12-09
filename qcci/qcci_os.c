@@ -7,9 +7,9 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include "qmi_client.h"
+#include "qmi_cci.h"
 #include "qcci_os.h"
-#include "qcci_internal.h"
+#include "qcci_common.h"
 #include "config.h"
 
 #ifdef QMI_FW_SYSLOG
