@@ -38,7 +38,7 @@ endif
 library_includedir = $(pkgincludedir)
 noinst_HEADERS = $(h_sources)
 
-c_sources = qcci.c \
+c_sources = qcci_common.c \
         qcci_os.c \
         qcci_xport_qrtr.c
 

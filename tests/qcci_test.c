@@ -1,7 +1,7 @@
 // Copyright (c) 2024, Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include "qmi_client.h"
+#include "qmi_cci.h"
 #include "qmi_idl_lib.h"
 #include "qmi_cci_target_ext.h"
 #include <stdio.h>
@@ -149,7 +149,7 @@ void test_service_rx_cb
 	void                           *buf,
 	unsigned int                   len,
 	void                           *resp_cb_data,
-	qmi_client_error_type          transp_err
+	qmi_cci_error_type          transp_err
 )
 {
 	--pending_async;
@@ -203,19 +203,19 @@ void test_service_basic_test
 	printf("TEST: Basic Ping Test with %d ping messages.\n",num_msgs);
 	for (i=0; i<num_msgs; ++i) {
 		if (async_mode) {
-			rc = qmi_client_send_msg_async(*clnt, QMI_TEST_REQ_V01, &req, sizeof(req),
+			rc = qmi_cci_send_msg_async(*clnt, QMI_TEST_REQ_V01, &req, sizeof(req),
 						       &resp, sizeof(resp), test_service_rx_cb,
 						       (void*)&cb_data, txn);
-			printf("TEST: qmi_client_send_msg_async returned %d on loop %d\n", rc,i);
+			printf("TEST: qmi_cci_send_msg_async returned %d on loop %d\n", rc,i);
 			if (rc != 0) {
 				printf("TEST: send_msg_async error: %d\n",rc);
 				exit(1);
 			}
 			++pending_async;
 		} else {
-			rc = qmi_client_send_msg_sync(*clnt, QMI_TEST_REQ_V01, &req, sizeof(req),
+			rc = qmi_cci_send_msg_sync(*clnt, QMI_TEST_REQ_V01, &req, sizeof(req),
 							&resp, sizeof(resp), 0);
-			printf("TEST: qmi_client_send_msg_sync returned %d on loop %d\n", rc,i);
+			printf("TEST: qmi_cci_send_msg_sync returned %d on loop %d\n", rc,i);
 			if (rc != 0) {
 				printf("TEST: send_msg_sync error: %d\n",rc);
 				exit(1);
@@ -283,22 +283,22 @@ void test_service_data_test
 	       msg_size);
 	for (i=0; i<num_msgs; ++i) {
 		if (async_mode) {
-			rc = qmi_client_send_msg_async(*clnt, QMI_TEST_DATA_REQ_V01, data_req,
+			rc = qmi_cci_send_msg_async(*clnt, QMI_TEST_DATA_REQ_V01, data_req,
 						       sizeof(test_data_req_msg_v01),
 						       data_resp, sizeof(test_data_resp_msg_v01),
 						       test_service_rx_cb, (void*)&cb_data,
 						       txn);
-			printf("TEST: qmi_client_send_msg_async returned %d on loop %d\n", rc,i);
+			printf("TEST: qmi_cci_send_msg_async returned %d on loop %d\n", rc,i);
 			if (rc != 0) {
 				printf("TEST: send_msg_async error: %d\n",rc);
 				exit(1);
 			}
 			++pending_async;
 		} else {
-			rc = qmi_client_send_msg_sync(*clnt, QMI_TEST_DATA_REQ_V01, data_req,
+			rc = qmi_cci_send_msg_sync(*clnt, QMI_TEST_DATA_REQ_V01, data_req,
 						       sizeof(test_data_req_msg_v01),
 						       data_resp, sizeof(test_data_resp_msg_v01), 0);
-			printf("TEST: qmi_client_send_msg_sync returned %d on loop %d\n", rc,i);
+			printf("TEST: qmi_cci_send_msg_sync returned %d on loop %d\n", rc,i);
 			if (rc != 0) {
 				printf("TEST: send_msg_sync error: %d\n",rc);
 				exit(1);
@@ -364,23 +364,23 @@ void test_service_ind_test
 	printf("TEST: Data Indication Test with %d indications of size %d.\n",num_inds,
 	       ind_size);
 	if (async_mode) {
-		rc = qmi_client_send_msg_async(*clnt, QMI_TEST_DATA_IND_REG_REQ_V01,
+		rc = qmi_cci_send_msg_async(*clnt, QMI_TEST_DATA_IND_REG_REQ_V01,
 					       &data_ind_reg_req,
 					       sizeof(data_ind_reg_req),&data_ind_reg_resp,
 					       sizeof(data_ind_reg_resp), test_service_rx_cb,
 					       (void*)&cb_data, txn);
-		printf("TEST: qmi_client_send_msg_async returned %d\n", rc);
+		printf("TEST: qmi_cci_send_msg_async returned %d\n", rc);
 		if (rc != 0) {
 			printf("TEST: send_msg_async error: %d\n",rc);
 			exit(1);
 		}
 		++pending_async;
 	} else {
-		rc = qmi_client_send_msg_sync(*clnt, QMI_TEST_DATA_IND_REG_REQ_V01,
+		rc = qmi_cci_send_msg_sync(*clnt, QMI_TEST_DATA_IND_REG_REQ_V01,
 					       &data_ind_reg_req,
 					       sizeof(data_ind_reg_req),&data_ind_reg_resp,
 					       sizeof(data_ind_reg_resp), 0);
-		printf("TEST: qmi_client_send_msg_sync returned %d\n", rc);
+		printf("TEST: qmi_cci_send_msg_sync returned %d\n", rc);
 		if (rc != 0) {
 			printf("TEST: send_msg_sync error: %d\n",rc);
 			exit(1);
@@ -428,13 +428,13 @@ int main(int argc, char **argv)
 		printf("TEST: test_get_serivce_object failed, verify test_service_v01.h and .c match.\n");
 	}
 
-	rc = qmi_client_notifier_init(test_service_object, &os_params, &notifier);
+	rc = qmi_cci_notifier_init(test_service_object, &os_params, &notifier);
 
 	/* Check if the service is up, if not wait on a signal */
 	while(1) {
-		rc = qmi_client_get_service_list(test_service_object, NULL, NULL,
+		rc = qmi_cci_get_service_list(test_service_object, NULL, NULL,
 						 &num_services);
-		printf("TEST: qmi_client_get_service_list() returned %d num_services = %d\n",
+		printf("TEST: qmi_cci_get_service_list() returned %d num_services = %d\n",
 		       rc, num_services);
 		if(rc == QMI_NO_ERR)
 			break;
@@ -444,19 +444,19 @@ int main(int argc, char **argv)
 
 	num_entries = num_services;
 	/* The server has come up, store the information in info variable */
-	rc = qmi_client_get_service_list(test_service_object, info, &num_entries,
+	rc = qmi_cci_get_service_list(test_service_object, info, &num_entries,
 					 &num_services);
-	printf("TEST: qmi_client_get_service_list() returned %d num_entries = %d num_services = %d\n",
+	printf("TEST: qmi_cci_get_service_list() returned %d num_entries = %d num_services = %d\n",
 	       rc, num_entries, num_services);
 	if (service_connect >= num_services)
 		service_connect = 0;
 	printf("%d Test Services found: Choosing service %d(numbered starting at 0)\n",
 	       num_services, service_connect);
 
-	rc = qmi_client_init(&info[service_connect], test_service_object,
+	rc = qmi_cci_init(&info[service_connect], test_service_object,
 			     test_service_ind_cb, NULL, NULL, &clnt);
 
-	printf("TEST: qmi_client_init returned %d\n", rc);
+	printf("TEST: qmi_cci_init returned %d\n", rc);
 	switch(select_test) {
 	case TEST_SERVICE_BASIC_TEST:
 		test_service_basic_test(&clnt,&txn, iterations);
@@ -472,10 +472,10 @@ int main(int argc, char **argv)
 		usage(argv[0]);
 	}
 
-	rc = qmi_client_release(clnt);
-	printf("TEST: qmi_client_release of clnt returned %d\n", rc);
+	rc = qmi_cci_release(clnt);
+	printf("TEST: qmi_cci_release of clnt returned %d\n", rc);
 
-	rc = qmi_client_release(notifier);
-	printf("TEST: qmi_client_release of notifier returned %d\n", rc);
+	rc = qmi_cci_release(notifier);
+	printf("TEST: qmi_cci_release of notifier returned %d\n", rc);
 	return 0;
 }

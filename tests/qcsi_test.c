@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include "qmi_idl_lib.h"
-#include "qcsi.h"
+#include "qmi_csi.h"
 #include "qcsi_common.h"
 
 extern void *qmi_test_service_register_service(qcsi_os_params *os_params, uint32_t serv_instce);
@@ -83,9 +83,9 @@ void qmi_test_service_start_service(uint32_t serv_inst)
       }
     }
     os_params_in.fds = fds;
-    qcsi_handle_event(sp, &os_params_in);
+    qmi_csi_handle_event(sp, &os_params_in);
   }
-  qcsi_unregister(sp);
+  qmi_csi_unregister(sp);
   printf("Server Terminated....\n");
 }
 

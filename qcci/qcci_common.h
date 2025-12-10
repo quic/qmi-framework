@@ -179,7 +179,7 @@ typedef void *(*qcci_open_fn_type)
  *
  * @retval QMI_NO_ERR Success
  */
-typedef qmi_client_error_type (*qcci_send_fn_type)
+typedef qmi_cci_error_type (*qcci_send_fn_type)
 (
 	void *handle,
 	void *addr,
@@ -319,7 +319,7 @@ void qcci_xport_resume
  *
  * @retval QMI_CSI_NO_ERR Success
  */
-qmi_client_error_type qcci_xport_recv
+qmi_cci_error_type qcci_xport_recv
 (
 	qcci_client_type *clnt,
 	void *addr,
@@ -401,7 +401,7 @@ void qcci_xport_event_server_error
  * @note This function is NOT re-enterable or thread safe. The only safe place
  * to call this is during initialization.
  */
-qmi_client_error_type qcci_init(
+qmi_cci_error_type qcci_init(
 	qcci_xport_ops_type	*xport_ops,
 	void			*xport_data);
 
@@ -415,6 +415,6 @@ qmi_client_error_type qcci_init(
  * @note This function is NOT re-enterable or thread safe. The only safe place
  *       to call this is during library de-initialization.
  */
-qmi_client_error_type qcci_deinit(void);
+qmi_cci_error_type qcci_deinit(void);
 
 #endif
