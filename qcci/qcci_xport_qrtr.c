@@ -401,8 +401,8 @@ static void *data_msg_reader_thread(void *arg)
 				break;
 			} else if (rx_len == 0) {
 				if (addr_size == sizeof(struct sockaddr_qrtr)) {
-					QCCI_LOG_DBG("%s: QCCI Received Resume_Tx on FD %d from port %08x:%08x\n",
-						     __func__, xp->fd, addr.sq_node, addr.sq_port);
+					QCCI_LOG_DBG("QCCI Received Resume_Tx on FD %d from port %08x:%08x\n",
+						      xp->fd, addr.sq_node, addr.sq_port);
 					qcci_xport_resume(xp->clnt);
 				} else {
 					QCCI_LOG_ERR("%s: No data read from %d\n", __func__, xp->fd);
@@ -414,7 +414,8 @@ static void *data_msg_reader_thread(void *arg)
 				continue;
 			}
 
-			QCCI_LOG_DBG("%s: Received %d bytes from %d\n", __func__, (int)rx_len, xp->fd);
+			QCCI_LOG_DBG("XP[%d] Received %d bytes from svc 0x%x at 0x%X:0x%x\n", xp->fd,
+						 (int)rx_len, xp->srv_name.service, addr.sq_node,addr.sq_port);
 			src_addr.service = 0;
 			src_addr.instance = 0;
 			src_addr.node_id = addr.sq_node;
@@ -430,7 +431,7 @@ static void *data_msg_reader_thread(void *arg)
 			if(ch == 'd') {
 				close(xp->rdr_tdata.wakeup_pipe[0]);
 				close(xp->rdr_tdata.wakeup_pipe[1]);
-				QCCI_LOG_DBG("Close[%d]\n", xp->fd);
+				QCCI_LOG_DBG("Close[%d] for service:[%d]\n", xp->fd, xp->srv_name.service);
 				close(xp->fd);
 				pthread_attr_destroy(&xp->rdr_tdata.reader_tattr);
 				release_xp(xp);
@@ -634,7 +635,7 @@ static void *xport_open
 	fcntl(xp->fd, F_SETFL, flags | O_NONBLOCK);
 	if(write(xp->rdr_tdata.wakeup_pipe[1], "a", 1) < 0)
 		QCCI_LOG_ERR("%s: Error writing to pipe\n", __func__);
-	QCCI_LOG_DBG("xport_open[%d]: max_rx_len=%d\n", xp->fd, max_rx_len);
+	QCCI_LOG_DBG("xport_open[%d]: max_rx_len=%d for service:[0x%x]\n", xp->fd, max_rx_len, service_id);
 
 xport_open_success:
 	pthread_mutex_lock(&ctrl_port->xport_list_lock);
@@ -694,8 +695,8 @@ static qmi_cci_error_type xport_send
 			     ntohs(s_addr->port_id), errno);
 		return QMI_CLIENT_TRANSPORT_ERR;
 	}
-	QCCI_LOG_DBG("Sent[%d]: %d bytes to port %d\n", xp->fd, len,
-		     ntohs(s_addr->port_id));
+	QCCI_LOG_DBG("Sent[%d]: %d bytes to service:[0x%x] at [0x%x:0x%x] \n", xp->fd, len,
+		     xp->srv_name.service, s_addr->node_id, s_addr->port_id);
 	return QMI_NO_ERR;
 }
 

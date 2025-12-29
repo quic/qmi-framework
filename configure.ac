@@ -30,8 +30,18 @@ AS_CASE([$host],
 AM_CONDITIONAL([GNU_CC],
 [test "$compile_for_gnu" = yes])
 
-#Enable QMI FW logging
-AM_CONDITIONAL(ENABLE_QMI_LOG, test "x${with_qmilog}" = "xyes")
+dnl Enable Android-specific logging (uses -llog etc.)
+AS_CASE([$host],
+  [*-linux-android*], [
+    enable_android_logging=yes
+  ], [
+    enable_android_logging=no
+  ]
+)
+
+AM_CONDITIONAL([ENABLE_ANDROID_LOGGING],
+  [test "x$enable_android_logging" = "xyes"])
+
 
 QCCI_DEBUG_LEVEL=3
 QCSI_DEBUG_LEVEL=3
