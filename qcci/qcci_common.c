@@ -2071,6 +2071,7 @@ qmi_cci_error_type qmi_cci_release_async(
 	void			*release_cb_data)
 {
 	qcci_client_type *clnt;
+	void *xport_handle;
 
 	clnt = qcci_client_get_ref(user_handle, 1);
 	if (!clnt)
@@ -2078,6 +2079,7 @@ qmi_cci_error_type qmi_cci_release_async(
 
 	QCCI_OS_LOCK(&clnt->lock);
 
+	xport_handle = clnt->xport_handle;
 	if (clnt->category != QCCI_NOTIFIER_CLIENT) {
 		/* From now on all calls to qcci_send will fail */
 		clnt->info.client.accepting_txns = 0;
@@ -2087,11 +2089,10 @@ qmi_cci_error_type qmi_cci_release_async(
 
 	clnt->release_cb = release_cb;
 	clnt->release_cb_data = release_cb_data;
-
-	qcci_xport_ops->close(clnt->xport_handle);
 	clnt->xport_handle = NULL;
 
 	QCCI_OS_UNLOCK(&clnt->lock);
+	qcci_xport_ops->close(xport_handle);
 
 	qcci_client_put_ref(clnt);
 
