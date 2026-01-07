@@ -260,7 +260,7 @@ static void handle_resume_tx
 				break;
 			}
 			else if(sendto_rc >= 0) {
-				QCSI_LOG_ERR("%s Sent [%d]: %d queued bytes for port %08x:%08x\n", __func__,
+				QCSI_LOG_DBG("%s Sent [%d]: %d queued bytes for port %08x:%08x\n", __func__,
 											xp->fd, q_buf->len, dest->dest_addr->node_id,
 											dest->dest_addr->port_id);
 			}
@@ -329,7 +329,6 @@ static void *xport_open
 	pthread_mutexattr_init(&mta);
 	int align_size = 0;
 
-	QCSI_LOG_ERR("xport_open[%d]: Enter\n", xp->fd);
 	if (!xp) {
 		QCSI_LOG_ERR("%s: xp calloc failed\n", __func__);
 		return NULL;
@@ -357,7 +356,7 @@ static void *xport_open
 	if (init_socket(xp, os_params) != QCSI_NO_ERR)
 		goto xport_open_free_xp;
 
-	QCSI_LOG_ERR("xport_open[%d]: max_rx_len=%d\n", xp->fd, max_rx_len);
+	QCSI_LOG_DBG("xport_open[%d]: max_rx_len=%d\n", xp->fd, max_rx_len);
 	return xp;
 
 xport_open_free_xp:
@@ -379,17 +378,17 @@ static qmi_csi_error_type xport_reg
 	int rc;
 
 	if (service_id == (uint32_t)-1 || version == (uint32_t)-1) {
-		QCSI_LOG_ERR("%s Invalid svc:%d ins:%d\n", __func__, service_id, version);
+		QCSI_LOG_ERR("Invalid svc:%d ins:%d\n", service_id, version);
 		return QCSI_INTERNAL_ERR;
 	}
 
 	if(getsockname(xp->fd, (void *)&sq, &sl)) {
-		QCSI_LOG_ERR("%s Failed to getsockname %d\n", __func__, errno);
+		QCSI_LOG_ERR("Failed to getsockname %d\n", errno);
 		return QCSI_INTERNAL_ERR;
 	}
 
 	if(sq.sq_family != AF_QIPCRTR || sl != sizeof(sq)) {
-		QCSI_LOG_ERR("%s Invalid socket family\n", __func__);
+		QCSI_LOG_ERR("Invalid socket family\n");
 		return QCSI_INTERNAL_ERR;
 	}
 
@@ -405,7 +404,7 @@ static qmi_csi_error_type xport_reg
 
 	rc = sendto(xp->fd, &pkt, sizeof(pkt), 0, (void *)&sq, sizeof(sq));
 	if(rc < 0) {
-		QCSI_LOG_ERR("%s Failed for service_id=0x%x version=0x%x on %d error %d\n", __func__,
+		QCSI_LOG_ERR("Failed for service_id=0x%x version=0x%x on %d error %d\n",
 													service_id, version, xp->fd, errno);
 		return QCSI_INTERNAL_ERR;
 	}
@@ -413,7 +412,7 @@ static qmi_csi_error_type xport_reg
 	xp->svc.service = service_id;
 	xp->svc.instance = version;
 
-	QCSI_LOG_ERR("xport_reg[%d]: service_id=0x%x version=0x%x\n", xp->fd, service_id, version);
+	QCSI_LOG_DBG("xport_reg[%d]: service_id=0x%x version=0x%x\n", xp->fd, service_id, version);
 	return QCSI_NO_ERR;
 }
 
@@ -426,7 +425,7 @@ static qmi_csi_error_type xport_unreg
 {
 	struct xport_handle *xp;
 	xp = (struct xport_handle *)handle;
-	QCSI_LOG_ERR("xport_unreg[%d]: type=0x%x version=0x%x\n", xp->fd, service_id, version);
+	QCSI_LOG_DBG("xport_unreg[%d]: type=0x%x version=0x%x\n", xp->fd, service_id, version);
 	return QCSI_NO_ERR;
 }
 
@@ -467,15 +466,9 @@ static qmi_csi_error_type xport_send
 	if( dest && LIST_CNT(dest->bufs)) {
 		/* Queue the message so that it doesn't go out of order */
 		rc = put_tx_q(xp, s_addr, msg, msg_len, max_q_len);
-		if(rc == QCSI_CONN_BUSY)
-			QCSI_LOG_ERR("%s Queue exceeded, Retry sending for port %08x:%08x\n",
+		if(rc != QCSI_NO_ERR)
+			QCSI_LOG_ERR("%s Error queuing packet for port %08x:%08x\n",
 									__func__, s_addr->node_id, s_addr->port_id);
-		else if(rc == QCSI_NO_ERR)
-			QCSI_LOG_ERR("%s Packet queued for port %08x:%08x\n", __func__,
-										s_addr->node_id, s_addr->port_id);
-		else
-			QCSI_LOG_ERR("%s Error queuing packet for port %08x:%08x\n", __func__,
-											s_addr->node_id, s_addr->port_id);
 		pthread_mutex_unlock(&xp->tx_q_lock);
 		return rc;
 	}
@@ -484,25 +477,19 @@ static qmi_csi_error_type xport_send
 	if ((sendto_rc < 0) && (errno == EAGAIN)) {
 		/* queue to tx queue */
 		rc = put_tx_q(xp, addr, msg, msg_len, max_q_len);
-		if(rc == QCSI_CONN_BUSY)
-			QCSI_LOG_ERR("%s Queue exceeded, Retry sending for port %08x:%08x\n",
+		if(rc != QCSI_NO_ERR)
+			QCSI_LOG_ERR("%s Error queuing packet for port %08x:%08x\n",
 									__func__, s_addr->node_id, s_addr->port_id);
-		else if(rc == QCSI_NO_ERR)
-			QCSI_LOG_ERR("%s Packet queued for port %08x:%08x\n", __func__,
-										s_addr->node_id, s_addr->port_id);
-		else
-			QCSI_LOG_ERR("%s Error queuing packet for port %08x:%08x\n", __func__,
-												s_addr->node_id, s_addr->port_id);
 	}
 	else if (sendto_rc >= 0) {
-		QCSI_LOG_ERR("Sent[%d]: %d bytes to port %08x:%08x\n", xp->fd, msg_len,
+		QCSI_LOG_TRACE("Sent[%d]: %d bytes to port %08x:%08x\n", xp->fd, msg_len,
 					s_addr->node_id, s_addr->port_id);
 		pthread_mutex_unlock(&xp->tx_q_lock);
 		return QCSI_NO_ERR;
 	}
 	else { /* Err on all other cases */
 		rc = QCSI_INTERNAL_ERR;
-		QCSI_LOG_ERR("%s  QCSI Sendto failed for port %08x:%08x err[%d]\n", __func__, s_addr->node_id, s_addr->port_id, errno);
+		QCSI_LOG_ERR("QCSI Sendto failed for port %08x:%08x err[%d]\n", s_addr->node_id, s_addr->port_id, errno);
 	}
 	pthread_mutex_unlock(&xp->tx_q_lock);
 
@@ -562,12 +549,12 @@ static void xport_handle_event
 				memcpy(&rx_ctl_msg, buf, sizeof(rx_ctl_msg));
 				addr.node_id = rx_ctl_msg.client.node;
 				addr.port_id = rx_ctl_msg.client.port;
-				QCSI_LOG_ERR("%s: CONTROL PKT cmd %d node %d port %d\n", __func__, rx_ctl_msg.cmd,
+				QCSI_LOG_DBG("%s: CONTROL PKT cmd %d node %d port %d\n", __func__, rx_ctl_msg.cmd,
 							rx_ctl_msg.client.node, rx_ctl_msg.client.port);
 
 				if (rx_ctl_msg.cmd == QRTR_TYPE_DEL_CLIENT) {
 					struct conn_cli *client;
-					QCSI_LOG_ERR("Received REMOVE_CLIENT cmd for %08x:%08x\n",
+					QCSI_LOG_DBG("Received REMOVE_CLIENT cmd for %08x:%08x\n",
 								rx_ctl_msg.client.node, rx_ctl_msg.client.port);
 					/* Purge the Tx queue */
 					pthread_mutex_lock(&xp->tx_q_lock);
@@ -605,7 +592,7 @@ static void xport_handle_event
 			}
 			else if ((src_addr_size == sizeof(struct sockaddr_qrtr)) && (rx_len == 0x0)) {
 
-			QCSI_LOG_ERR("%s: QCSI Received Resume_Tx from %08x:%08x on FD- %d\n",
+			QCSI_LOG_TRACE("%s: QCSI Received Resume_Tx from %08x:%08x on FD- %d\n",
 							__func__, addr.node_id, addr.port_id, xp->fd);
 			handle_resume_tx(xp, &addr);
 			}
@@ -616,7 +603,7 @@ static void xport_handle_event
 			else
 				break;
 		} while(rx_len >= 0);
-		QCSI_LOG_ERR("xport_handle_event[%d]\n", xp->fd);
+		QCSI_LOG_TRACE("xport_handle_event[%d]\n", xp->fd);
 		free(buf);
 	}
 }
@@ -632,7 +619,7 @@ static void xport_close
 	purge_dest_s(xp);
 	purge_conn_cli(xp);
 
-	QCSI_LOG_ERR("xport_close[%d]\n", xp->fd);
+	QCSI_LOG_DBG("xport_close[%d]\n", xp->fd);
 	close(xp->fd);
 	qcsi_xport_closed(xp->xport);
 	free(xp);

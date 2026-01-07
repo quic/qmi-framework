@@ -661,6 +661,7 @@ qmi_csi_error_type qcsi_xport_connect
 
 	/* invoke service_connect without lock held */
 	if(connect_cb) {
+		QCSI_LOG_ERR("Invoking service_connect cb for client handle %u\n", client_handle);
 		cb_rc = connect_cb((qmi_client_handle)(uintptr_t)client_handle,
 				   service_cookie, &connection_handle);
 
@@ -728,7 +729,7 @@ qmi_csi_error_type qcsi_xport_recv
 
 	decode_header(buf, &cntl_flag, &txn_id, &msg_id, &msg_len);
 
-	QCSI_LOG_TX_PKT(svc->service_obj, cntl_flag, txn_id, msg_id, msg_len,
+	QCSI_LOG_RX_PKT(svc->service_obj, cntl_flag, txn_id, msg_id, msg_len,
 			      addr, xport->addr_len);
 
 	/* got a client struct, handle only request */
@@ -1211,6 +1212,7 @@ qmi_csi_error_type qmi_csi_register (
 		       os_params,
 		       NULL,
 		       service_provider);
+
 }
 
 /**
@@ -1307,7 +1309,6 @@ qmi_csi_error_type qcsi_send_resp_internal(
 
 send_resp_bail:
 	UNLOCK(&txn_list_lock);
-	QCSI_LOG_ERR("%s Internal send: rc: %d \n", __func__,rc);
 	return rc;
 }
 

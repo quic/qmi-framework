@@ -9,6 +9,7 @@
  * @brief QMI CSI OS-specific utilities.
  */
 #include <pthread.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -53,66 +54,25 @@ typedef pthread_mutex_t qcsi_lock_type;
 /** Free allocated memory */
 #define FREE free
 
-/**
- * @brief Macros for logging.
- */
-#if defined(QMI_FW_ADB_LOG) || defined(QMI_ANDROID_LOGGING_LE)
-#define LOG_TAG "QMI_OS_FW"
+typedef enum {
+    QCSI_LOG_NONE = 0,
+    QCSI_LOG_ERR,
+    QCSI_LOG_WARN,
+    QCSI_LOG_INFO,
+    QCSI_LOG_DBG,
+    QCSI_LOG_TRACE,
+} qcsi_log_level_t;
 
-#ifdef QMI_ANDROID_LOGGING_LE
-#include <cutils/log.h>
-#else
-#include <utils/Log.h>
-#endif
+extern int qcsi_loglevel;
 
-#ifdef QMI_CSI_ANDROID
-extern unsigned int qcsi_debug_level;
-#define QCSI_LOG_INFO(x...) do { \
-		if (qcsi_debug_level <= ANDROID_LOG_INFO) \
-			SLOGI("QCSI: "x); \
-	} while(0)
-#define QCSI_LOG_DBG(x...) do { \
-		if (qcsi_debug_level <= ANDROID_LOG_DEBUG) \
-			SLOGD("QCSI: "x); \
-	} while(0)
-#else
-#define QCSI_LOG_INFO(x...)
-#define QCSI_LOG_DBG(x...)
-#endif
+void qcsi_log_write(qcsi_log_level_t lvl, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 
-#define QCSI_LOG_ERR(x...) ALOGE(x);
-
-#elif defined(QMI_FW_SYSLOG)
-#include <syslog.h>
-
-extern unsigned int qcsi_debug_level;
-#define QCSI_LOG_INFO(x...) do { \
-		if (qcsi_debug_level >= LOG_INFO) \
-			syslog(LOG_INFO, "QMI_OS_FW: QCSI: "x); \
-	} while(0)
-#define QCSI_LOG_DBG(x...) do { \
-		if (qcsi_debug_level >= LOG_DEBUG) \
-			syslog(LOG_DEBUG, "QMI_OS_FW: QCSI: "x); \
-	} while(0)
-
-#define QCSI_LOG_ERR(x...)  syslog(LOG_ERR, x)
-
-#else
-#define QCSI_LOG_INFO(x...) do { \
-		fprintf(stdout, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stdout, ##x);                               \
-	} while(0)
-
-#define QCSI_LOG_DBG(x...) do { \
-		fprintf(stdout, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stdout, ##x);                               \
-	} while(0)
-
-#define QCSI_LOG_ERR(x...) do { \
-		fprintf(stderr, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stderr, ##x);                               \
-	} while(0)
-#endif
+#define QCSI_LOG_ERR(fmt, ...)   qcsi_log_write(QCSI_LOG_ERR,   "QCSI: " fmt, ##__VA_ARGS__)
+#define QCSI_LOG_WARN(fmt, ...)  qcsi_log_write(QCSI_LOG_WARN,  "QCSI: " fmt, ##__VA_ARGS__)
+#define QCSI_LOG_INFO(fmt, ...)  qcsi_log_write(QCSI_LOG_INFO,  "QCSI: " fmt, ##__VA_ARGS__)
+#define QCSI_LOG_DBG(fmt, ...)   qcsi_log_write(QCSI_LOG_DBG,   "QCSI: " fmt, ##__VA_ARGS__)
+#define QCSI_LOG_TRACE(fmt, ...) qcsi_log_write(QCSI_LOG_TRACE, "QCSI: " fmt, ##__VA_ARGS__)
 
 /**
  * @brief Macro for logging transmitted messages.

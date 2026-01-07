@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sys/time.h>
+#include <stdarg.h>
 
 #if defined(__GLIBC__)
 #include <endian.h>
@@ -55,66 +56,27 @@ typedef pthread_mutex_t qcci_os_lock_type;
 		param = param; \
 	} while(0)
 
-/**
- * @brief Macros for logging.
- */
-#if defined(QMI_FW_ADB_LOG) || defined(QMI_ANDROID_LOGGING_LE)
-#define LOG_TAG "QMI_FW"
 
-#ifdef QMI_ANDROID_LOGGING_LE
-#include <cutils/log.h>
-#else
-#include <utils/Log.h>
-#endif
 
-#ifdef QMI_CCI_ANDROID
-extern unsigned int qcci_debug_level;
-#define QCCI_LOG_INFO(x...) do { \
-		if (qcci_debug_level <= ANDROID_LOG_INFO) \
-			SLOGI("QCCI: "x); \
-	} while(0)
-#define QCCI_LOG_DBG(x...) do { \
-		if (qcci_debug_level <= ANDROID_LOG_DEBUG) \
-			SLOGD("QCCI: "x); \
-	} while(0)
-#else
-#define QCCI_LOG_INFO(x...)
-#define QCCI_LOG_DBG(x...)
-#endif
+typedef enum {
+    QCCI_LOG_NONE = 0,
+    QCCI_LOG_ERR,
+    QCCI_LOG_WARN,
+    QCCI_LOG_INFO,
+    QCCI_LOG_DBG,
+    QCCI_LOG_TRACE,
+} qcci_log_level_t;
 
-#define QCCI_LOG_ERR(x...) ALOGE(x);
+extern int qcci_loglevel;
 
-#elif defined(QMI_FW_SYSLOG)
-#include <syslog.h>
+void qcci_log_write(qcci_log_level_t lvl, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 
-extern unsigned int qcci_debug_level;
-#define QCCI_LOG_INFO(x...) do { \
-		if (qcci_debug_level >= LOG_INFO) \
-			syslog(LOG_INFO, "QMI_FW: QCCI: "x); \
-	} while(0)
-#define QCCI_LOG_DBG(x...) do { \
-		if (qcci_debug_level >= LOG_DEBUG) \
-			syslog(LOG_DEBUG, "QMI_FW: QCCI: "x); \
-	} while(0)
-
-#define QCCI_LOG_ERR(x...)  syslog(LOG_ERR, x)
-
-#else
-#define QCCI_LOG_INFO(x...) do { \
-		fprintf(stdout, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stdout, ##x);                               \
-	} while(0)
-
-#define QCCI_LOG_DBG(x...) do { \
-		fprintf(stdout, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stdout, ##x);                               \
-	} while(0)
-
-#define QCCI_LOG_ERR(x...) do { \
-		fprintf(stderr, "%s(%d) ", __FUNCTION__, __LINE__); \
-		fprintf(stderr, ##x);                               \
-	} while(0)
-#endif
+#define QCCI_LOG_ERR(fmt, ...)   qcci_log_write(QCCI_LOG_ERR,   "QCCI: " fmt, ##__VA_ARGS__)
+#define QCCI_LOG_WARN(fmt, ...)  qcci_log_write(QCCI_LOG_WARN,  "QCCI: " fmt, ##__VA_ARGS__)
+#define QCCI_LOG_INFO(fmt, ...)  qcci_log_write(QCCI_LOG_INFO,  "QCCI: " fmt, ##__VA_ARGS__)
+#define QCCI_LOG_DBG(fmt, ...)   qcci_log_write(QCCI_LOG_DBG,   "QCCI: " fmt, ##__VA_ARGS__)
+#define QCCI_LOG_TRACE(fmt, ...) qcci_log_write(QCCI_LOG_TRACE, "QCCI: " fmt, ##__VA_ARGS__)
 
 /**
  * @brief Macro for logging transmitted messages.

@@ -59,6 +59,9 @@ void qmi_test_service_start_service(uint32_t serv_inst)
   char buf[10];
   void *sp;
 
+  memset(&os_params, 0, sizeof(os_params));
+  memset(&os_params_in, 0, sizeof(os_params_in));
+  printf("Starting QMI Test Ping Service with instance ID: %d\n", serv_inst);
   sp = qmi_test_service_register_service(&os_params, serv_inst);
 
   if(!sp)
@@ -79,14 +82,14 @@ void qmi_test_service_start_service(uint32_t serv_inst)
     {
       if(read(STDIN_FILENO, buf, sizeof(buf)) <= 0)
       {
-		break;
+		    break;
       }
     }
     os_params_in.fds = fds;
     qmi_csi_handle_event(sp, &os_params_in);
   }
   qmi_csi_unregister(sp);
-  printf("Server Terminated....\n");
+  printf("Terminated QMI Test Ping Service\n");
 }
 
 /*=============================================================================

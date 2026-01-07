@@ -7,46 +7,119 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "qmi_cci.h"
 #include "qcci_os.h"
 #include "qcci_common.h"
 #include "config.h"
 
-#ifdef QMI_FW_SYSLOG
-	#define QCCI_DEFAULT_DBG_LEVEL 4
-#else
-	#define QCCI_DEFAULT_DBG_LEVEL 5
-#endif
-
-#ifdef QMI_CCI_SYSTEM
-	#define QMI_FW_CONF_FILE "/etc/qmi_fw.conf"
-#else
-	#define QMI_FW_CONF_FILE "/vendor/etc/qmi_fw.conf"
-#endif
+#define QMI_FW_CONF_FILE "/etc/qmi_fw.conf"
 
 #define MAX_LINE_LENGTH 80
-#define QCCI_DBG_CONF_STR "QMI_CCI_DEBUG_LEVEL="
 
 extern qcci_xport_ops_type qcci_qrtr_ops;
 extern void qcci_xport_qrtr_deinit(void);
 
 
-unsigned int qcci_debug_level;
-
-/**
- * @brief Debug level init.
- *
- */
-#if defined(QMI_FW_ANDROID) || defined(QMI_FW_SYSLOG) || defined(QMI_ANDROID_LOGGING_LE)
-static void qcci_debug_init(void)
-{
-    qcci_debug_level = QCCI_DEBUG_LEVEL;
-}
+#ifdef __ANDROID__
+#include <android/log.h>
 #else
-static void qcci_debug_init(void)
+#include <syslog.h>
+#endif
+
+int qcci_loglevel = QCCI_LOG_ERR;
+
+static void qcci_set_loglevel(const char *val)
 {
+    if (!val || !*val)
+        return;
+
+    if (!strcasecmp(val, "NONE"))
+        qcci_loglevel = QCCI_LOG_NONE;
+    else if (!strcasecmp(val, "ERR"))
+        qcci_loglevel = QCCI_LOG_ERR;
+    else if (!strcasecmp(val, "WARN"))
+        qcci_loglevel = QCCI_LOG_WARN;
+    else if (!strcasecmp(val, "INFO"))
+        qcci_loglevel = QCCI_LOG_INFO;
+    else if (!strcasecmp(val, "DBG"))
+        qcci_loglevel = QCCI_LOG_DBG;
+    else if (!strcasecmp(val, "TRACE"))
+        qcci_loglevel = QCCI_LOG_TRACE;
 }
-#endif /* QMI_FW_ANDROID) || QMI_FW_SYSLOG */
+
+static void qcci_log_init_once(void)
+{
+    static int init;
+    if (init)
+        return;
+
+
+	FILE *f = fopen(QMI_FW_CONF_FILE, "r");
+    if (f) {
+        char line[MAX_LINE_LENGTH];
+
+        while (fgets(line, sizeof(line), f)) {
+            char *p = line;
+            while (*p && isspace((unsigned char)*p))
+                p++;
+
+            const char *key = "QMI_LOG_LEVEL=";
+            size_t key_len = strlen(key);
+
+            if (!strncmp(p, key, key_len)) {
+                char *val = p + key_len;
+
+                char *end = val + strlen(val);
+                while (end > val && isspace((unsigned char)end[-1]))
+                    *--end = '\0';
+
+                qcci_set_loglevel(val);
+                break; 
+            }
+        }
+
+        fclose(f);
+    }
+
+    const char *env = getenv("QMI_LOG_LEVEL");
+    if (env) {
+        qcci_set_loglevel(env);
+    }
+
+#ifndef __ANDROID__
+    openlog("qcci", LOG_PID, LOG_USER);
+#endif
+    init = 1;
+}
+
+void qcci_log_write(qcci_log_level_t lvl, const char *fmt, ...)
+{
+
+    if (lvl > qcci_loglevel)
+        return;
+
+    char buf[512];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+
+#ifdef __ANDROID__
+    int pr = ANDROID_LOG_DEBUG;
+    if (lvl == QCCI_LOG_ERR) pr = ANDROID_LOG_ERROR;
+    else if (lvl == QCCI_LOG_WARN) pr = ANDROID_LOG_WARN;
+    else if (lvl == QCCI_LOG_INFO) pr = ANDROID_LOG_INFO;
+    __android_log_print(pr, "QMI_OS", "%s", buf);
+#else
+    int pr = LOG_DEBUG;
+    if (lvl == QCCI_LOG_ERR) pr = LOG_ERR;
+    else if (lvl == QCCI_LOG_WARN) pr = LOG_WARNING;
+    else if (lvl == QCCI_LOG_INFO) pr = LOG_INFO;
+    syslog(pr, "QMI_OS: %s", buf);
+#endif
+}
+
 
 /**
  * @brief Initialize the QCCI library.
@@ -62,7 +135,7 @@ static void qcci_debug_init(void)
 #ifdef __GNUC__
 void __attribute__ ((constructor)) qcci_fw_init(void)
 {
-	qcci_debug_init();
+	qcci_log_init_once();
 	qcci_init(&qcci_qrtr_ops, NULL);
 }
 #endif
