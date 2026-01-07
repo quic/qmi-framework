@@ -18,16 +18,12 @@ AM_CPPFLAGS = \
         $(QMI_CFLAGS) \
         $(QMIFV_CFLAGS)
 
-if ENABLE_QMI_LOG
-AM_CFLAGS += -DQMI_ANDROID_LOGGING_LE
-endif
-
 h_sources = \
         qcsi_os.h
 
 requiredlibs = ../qencdec/libqencdec.la
 
-if ENABLE_QMI_LOG
+if ENABLE_ANDROID_LOGGING
 requiredlibs += -llog
 endif
 
