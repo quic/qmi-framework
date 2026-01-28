@@ -54,6 +54,7 @@ AC_CONFIG_FILES([
  qencdec/Makefile \
  qcci/Makefile	  \
  qcsi/Makefile    \
- tests/Makefile
+ tests/Makefile   \
+ qmi-framework.pc
 ])
 AC_OUTPUT
