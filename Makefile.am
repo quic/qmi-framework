@@ -12,4 +12,8 @@ pkginclude_HEADERS = \
                 include/qmi_cci.h \
                 include/qmi_idl_lib.h \
                 include/qmi_idl_lib_internal.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = qmi-framework.pc
+
 SUBDIRS = common qencdec qcci qcsi tests
